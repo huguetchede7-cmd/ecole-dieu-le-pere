@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EleveController;     // ← Ajout important
+use App\Http\Controllers\ClasseController;    // ← Ajout recommandé
+use App\Http\Controllers\UtilisateurController; // ← Ajout recommandé
+
+// Page d'accueil → redirige vers login
+Route::get('/', function () {
+    return redirect('/login');
+});
+
+// Authentification
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ==================== ADMIN ====================
+Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+
+    // Gestion des utilisateurs
+    Route::resource('utilisateurs', UtilisateurController::class);
+
+    // Gestion des classes
+    Route::resource('classes', ClasseController::class);
+
+    // Gestion des élèves
+    Route::resource('eleves', EleveController::class);
+
+});
+
+// ==================== AUTRES TABLEAUX DE BORD ====================
+Route::get('/directeur/dashboard', function () {
+    return view('directeur.dashboard');
+})->middleware('auth.role:directeur')->name('directeur.dashboard');
+
+Route::get('/enseignant/dashboard', function () {
+    return view('enseignant.dashboard');
+})->middleware('auth.role:enseignant')->name('enseignant.dashboard');
+
+Route::get('/comptable/dashboard', function () {
+    return view('comptable.dashboard');
+})->middleware('auth.role:comptable')->name('comptable.dashboard');
+
+Route::get('/secretaire/dashboard', function () {
+    return view('secretaire.dashboard');
+})->middleware('auth.role:secretaire')->name('secretaire.dashboard');
