@@ -12,4 +12,9 @@ class Matiere extends Model
         'nom',
         'classe_id'
     ];
+
+    public function classe()
+    {
+        return $this->belongsTo(Classe::class);
+    }
 }

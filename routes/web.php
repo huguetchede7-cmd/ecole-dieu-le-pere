@@ -1,10 +1,12 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EleveController;     // ← Ajout important
 use App\Http\Controllers\ClasseController;    // ← Ajout recommandé
 use App\Http\Controllers\UtilisateurController; // ← Ajout recommandé
+use App\Http\Controllers\MatiereController;
+use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\TypeFraisController;
 
 // Page d'accueil → redirige vers login
 Route::get('/', function () {
@@ -22,7 +24,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(fun
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
-
+Route::resource('types-frais', TypeFraisController::class);
+Route::resource('matieres', MatiereController::class);
+Route::resource('inscriptions', InscriptionController::class);
     // Gestion des utilisateurs
     Route::resource('utilisateurs', UtilisateurController::class);
 
