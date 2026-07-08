@@ -8,6 +8,10 @@ use App\Http\Controllers\UtilisateurController; // ← Ajout recommandé
 use App\Http\Controllers\MatiereController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\TypeFraisController;
+use App\Http\Controllers\RecuController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\AbsenceController;
+use App\Http\Controllers\PlainteController;
 
 // Page d'accueil → redirige vers login
 Route::get('/', function () {
@@ -29,7 +33,12 @@ Route::resource('types-frais', TypeFraisController::class);
 Route::resource('matieres', MatiereController::class);
 Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
-    // Gestion des utilisateurs
+Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+Route::resource('notes', NoteController::class);
+Route::resource('absences', AbsenceController::class);
+Route::resource('plaintes', PlainteController::class);
+
+ // Gestion des utilisateurs
     Route::resource('utilisateurs', UtilisateurController::class);
 
     // Gestion des classes
