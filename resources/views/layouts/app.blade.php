@@ -133,9 +133,9 @@
             <p>{{ session('utilisateur_role') }}</p>
         </div>
 
-        <div class="sidebar-menu">
-            @yield('menu')
-        </div>
+<div class="sidebar-menu">
+    @include('partials.menu')
+</div>
 
         <div class="sidebar-footer">
             <a href="/logout" class="logout-btn">🚪 Se déconnecter</a>

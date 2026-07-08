@@ -2,25 +2,6 @@
 
 @section('title', 'Classes')
 
-@section('menu')
-    <div class="menu-label">Principal</div>
-    <a href="/admin/dashboard" class="menu-item"><span>📊</span> Tableau de bord</a>
-
-    <div class="menu-label">Gestion</div>
-    <a href="/admin/utilisateurs" class="menu-item"><span>👥</span> Utilisateurs</a>
-    <a href="/admin/eleves" class="menu-item"><span>🎒</span> Élèves</a>
-    <a href="/admin/classes" class="menu-item active"><span>🏫</span> Classes</a>
-
-    <div class="menu-label">Scolarité</div>
-    <a href="/admin/paiements" class="menu-item"><span>💰</span> Paiements</a>
-    <a href="/admin/notes" class="menu-item"><span>📝</span> Notes</a>
-    <a href="/admin/absences" class="menu-item"><span>📅</span> Absences</a>
-
-    <div class="menu-label">Secrétariat</div>
-    <a href="/admin/plaintes" class="menu-item"><span>📋</span> Plaintes</a>
-    <a href="/admin/recus" class="menu-item"><span>🧾</span> Reçus</a>
-@endsection
-
 @section('page_title', 'Gestion des Classes')
 
 @section('content')
