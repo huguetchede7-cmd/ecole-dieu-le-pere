@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\PaiementController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EleveController;     // ← Ajout important
@@ -27,6 +28,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(fun
 Route::resource('types-frais', TypeFraisController::class);
 Route::resource('matieres', MatiereController::class);
 Route::resource('inscriptions', InscriptionController::class);
+Route::resource('paiements', PaiementController::class);
     // Gestion des utilisateurs
     Route::resource('utilisateurs', UtilisateurController::class);
 
