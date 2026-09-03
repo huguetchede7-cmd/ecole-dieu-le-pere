@@ -38,6 +38,8 @@ Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 Route::resource('notes', NoteController::class);
+Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');
+Route::get('notes/bulletin/{eleve}/{annee_scolaire}', [NoteController::class, 'bulletin'])->name('notes.bulletin');
 Route::resource('absences', AbsenceController::class);
 Route::resource('plaintes', PlainteController::class);
 
