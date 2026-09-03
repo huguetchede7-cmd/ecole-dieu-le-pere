@@ -9,19 +9,29 @@ class Recu extends Model
     protected $table = 'recus';
 
     protected $fillable = [
-        'paiement_id',
+        'inscription_id',
         'secretaire_id',
         'numero_recu',
         'date_emission',
     ];
 
-    public function paiement()
+    public function inscription()
     {
-        return $this->belongsTo(Paiement::class);
+        return $this->belongsTo(Inscription::class);
+    }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class);
     }
 
     public function secretaire()
     {
         return $this->belongsTo(Utilisateur::class, 'secretaire_id');
+    }
+
+    public function getMontantTotalAttribute()
+    {
+        return $this->paiements->sum('montant_paye');
     }
 }

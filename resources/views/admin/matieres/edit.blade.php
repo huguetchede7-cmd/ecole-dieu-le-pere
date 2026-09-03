@@ -29,16 +29,16 @@
     </div>
 
     <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Classe</label>
-        <select name="classe_id" required
-            style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
-            @foreach($classes as $classe)
-            <option value="{{ $classe->id }}" {{ old('classe_id', $matiere->classe_id) == $classe->id ? 'selected' : '' }}>
-                {{ $classe->nom }}
-            </option>
-            @endforeach
-        </select>
-    </div>
+<label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Niveau</label>
+<select name="niveau" required
+style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+@foreach($niveaux as $niveau)
+<option value="{{ $niveau }}" {{ old('niveau', $matiere->niveau) == $niveau ? 'selected' : '' }}>
+{{ $niveau }}
+</option>
+@endforeach
+</select>
+</div>
 
     <div style="display: flex; gap: 12px;">
         <button type="submit"

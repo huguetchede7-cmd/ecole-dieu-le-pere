@@ -34,7 +34,7 @@
                         <option value="">-- Choisir un niveau --</option>
                         <option value="Maternelle 1" {{ old('niveau') === 'Maternelle 1' ? 'selected' : '' }}>Maternelle 1</option>
                         <option value="Maternelle 2" {{ old('niveau') === 'Maternelle 2' ? 'selected' : '' }}>Maternelle 2</option>
-                        <option value="Maternelle 3" {{ old('niveau') === 'Maternelle 3' ? 'selected' : '' }}>Maternelle 3</option>
+                        <option value="CI" {{ old('niveau') === 'CI' ? 'selected' : '' }}>CI</option>
                         <option value="CP" {{ old('niveau') === 'CP' ? 'selected' : '' }}>CP</option>
                         <option value="CE1" {{ old('niveau') === 'CE1' ? 'selected' : '' }}>CE1</option>
                         <option value="CE2" {{ old('niveau') === 'CE2' ? 'selected' : '' }}>CE2</option>

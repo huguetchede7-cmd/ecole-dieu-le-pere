@@ -67,6 +67,16 @@
         </select>
     </div>
 
+    <div style="margin-bottom: 20px;">
+<label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Décision de fin d'année</label>
+<select name="decision"
+style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+<option value="">-- Pas encore décidé --</option>
+<option value="admis" {{ old('decision', $inscription->decision) === 'admis' ? 'selected' : '' }}>Admis</option>
+<option value="refuse" {{ old('decision', $inscription->decision) === 'refuse' ? 'selected' : '' }}>Refusé</option>
+</select>
+</div>
+
     <div style="display: flex; gap: 12px;">
         <button type="submit"
             style="background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">

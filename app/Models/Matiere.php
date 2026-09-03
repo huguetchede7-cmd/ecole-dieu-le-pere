@@ -10,11 +10,11 @@ class Matiere extends Model
 
     protected $fillable = [
         'nom',
-        'classe_id'
+        'niveau'
     ];
 
-    public function classe()
+    public function classes()
     {
-        return $this->belongsTo(Classe::class);
+        return $this->hasMany(Classe::class, 'niveau', 'niveau');
     }
 }

@@ -29,6 +29,7 @@
                 <th style="padding: 14px 20px; text-align: left; font-size: 13px; color: #666;">Date émission</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 13px; color: #666;">Secrétaire</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 13px; color: #666;">Actions</th>
+               <th style="padding: 14px 20px; text-align: left; font-size: 13px; color: #666;">Montant total</th>           
             </tr>
         </thead>
         <tbody>
@@ -37,7 +38,7 @@
                 <td style="padding: 14px 20px; font-size: 14px;">{{ $recu->id }}</td>
                 <td style="padding: 14px 20px; font-size: 14px; font-weight: 600;">{{ $recu->numero_recu }}</td>
                 <td style="padding: 14px 20px; font-size: 14px;">
-                    {{ $recu->paiement->eleve->nom ?? 'N/A' }} {{ $recu->paiement->eleve->prenom ?? '' }}
+                {{ $recu->inscription->eleve->nom ?? 'N/A' }} {{ $recu->inscription->eleve->prenom ?? '' }}
                 </td>
                 <td style="padding: 14px 20px; font-size: 14px;">{{ $recu->date_emission }}</td>
                 <td style="padding: 14px 20px; font-size: 14px; color: #666;">{{ $recu->secretaire->nom ?? 'N/A' }}</td>
@@ -61,6 +62,9 @@
                 <td colspan="6" style="padding: 30px; text-align: center; color: #999; font-size: 14px;">
                     Aucun reçu généré.
                 </td>
+                <td style="padding: 14px 20px; font-size: 14px; font-weight: 600; color: #1a73e8;">
+    {{ number_format($recu->montant_total, 0, ',', ' ') }} FCFA
+</td>
             </tr>
             @endforelse
         </tbody>

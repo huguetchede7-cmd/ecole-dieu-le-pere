@@ -11,48 +11,33 @@ class Eleve extends Model
 
     protected $table = 'eleves';
 
-    protected $fillable = [
+    protected $fillable = [ 
+        'matricule',
         'nom',
         'prenom',
         'date_naissance',
         'sexe',
-        'classe_id',           // ← Ajout important
-        'annee_scolaire',      // ← Ajout important
         'nom_parent',
         'contact_parent',
         'adresse',
         'photo',
-        'statut'
     ];
 
     // === RELATIONS ===
 
-    /**
-     * Relation directe avec la classe (utilisée dans index, edit, etc.)
-     */
-    public function classe()
-    {
-        return $this->belongsTo(Classe::class);
-    }
-
-    /**
-     * Relation avec les inscriptions (déjà existante)
-     */
     public function inscriptions()
     {
         return $this->hasMany(Inscription::class);
     }
 
     /**
-     * Classe actuelle de l'élève (via inscription active)
+     * Inscription active la plus récente (relation Eloquent, eager-loadable)
      */
-    public function classeActuelle()
+    public function inscriptionActuelle()
     {
-        return $this->inscriptions()
-                    ->where('statut', 'actif')
-                    ->with('classe')
-                    ->latest()
-                    ->first();
+        return $this->hasOne(Inscription::class)
+            ->where('statut', 'actif')
+            ->latestOfMany();
     }
 
     // === ACCESSEURS ===
@@ -64,8 +49,25 @@ class Eleve extends Model
 
     public function getAgeAttribute()
     {
-        return $this->date_naissance 
-            ? \Carbon\Carbon::parse($this->date_naissance)->age 
+        return $this->date_naissance
+            ? \Carbon\Carbon::parse($this->date_naissance)->age
             : null;
     }
+
+    public function getClasseActuelleAttribute()
+    {
+        return $this->inscriptionActuelle?->classe;
+    }
+
+    public static function genererMatricule(): string
+{
+    $annee = date('Y');
+    $dernier = self::where('matricule', 'like', "MAT-{$annee}-%")
+        ->orderByDesc('matricule')
+        ->value('matricule');
+
+    $numero = $dernier ? ((int) substr($dernier, -5)) + 1 : 1;
+
+    return 'MAT-' . $annee . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
+}
 }

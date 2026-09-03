@@ -13,11 +13,11 @@
     @endif
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-        <h2 style="font-size:16px; color:#333;">Liste des élèves</h2>
-        <a href="/admin/eleves/create" style="background:#1a73e8; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600;">
-            + Ajouter un élève
-        </a>
-    </div>
+<h2 style="font-size:16px; color:#333;">Liste des élèves</h2>
+<a href="/admin/inscriptions/create" style="background:#1a73e8; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600;">
++ Ajouter un élève
+</a>
+</div>
 
     <div style="background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">
         <table style="width:100%; border-collapse:collapse;">
@@ -81,7 +81,7 @@
                 @empty
                 <tr>
                     <td colspan="7" style="padding:40px; text-align:center; color:#999; font-size:14px;">
-                        🎒 Aucun élève trouvé. <a href="/admin/eleves/create" style="color:#1a73e8;">Ajouter le premier élève</a>
+                        🎒 Aucun élève trouvé. <a href="/admin/inscriptions/create" style="color:#1a73e8;">Ajouter le premier élève</a>
                     </td>
                 </tr>
                 @endforelse

@@ -9,7 +9,14 @@ class ClasseController extends Controller
 {
     public function index()
     {
-        $classes = Classe::orderBy('niveau')->orderBy('nom')->get();
+    $ordreNiveaux = [
+    'Maternelle 1', 'Maternelle 2',
+    'CI', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'
+];
+
+$classes = Classe::orderByRaw(
+    "FIELD(niveau, '" . implode("','", $ordreNiveaux) . "')"
+)->orderBy('nom')->get();
         return view('admin.classes.index', compact('classes'));
     }
 

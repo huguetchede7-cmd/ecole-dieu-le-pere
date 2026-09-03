@@ -1,11 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Générer un reçu')
-
 @section('page_title', 'Générer un reçu')
 
 @section('content')
-
 <div style="max-width: 600px;">
 
 @if($errors->any())
@@ -22,16 +20,30 @@
     @csrf
 
     <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Paiement</label>
-        <select name="paiement_id" required
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Inscription</label>
+        <select name="inscription_id" required
             style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
-            <option value="">-- Choisir un paiement --</option>
-            @foreach($paiements as $paiement)
-            <option value="{{ $paiement->id }}" {{ old('paiement_id') == $paiement->id ? 'selected' : '' }}>
-                {{ $paiement->eleve->nom ?? '' }} {{ $paiement->eleve->prenom ?? '' }} — {{ number_format($paiement->montant_paye, 0, ',', ' ') }} FCFA ({{ $paiement->date_paiement }})
+            <option value="">-- Choisir une inscription --</option>
+            @foreach($inscriptions as $inscription)
+            <option value="{{ $inscription->id }}" {{ old('inscription_id') == $inscription->id ? 'selected' : '' }}>
+                {{ $inscription->eleve->nom ?? '' }} {{ $inscription->eleve->prenom ?? '' }} — {{ $inscription->annee_scolaire }}
             </option>
             @endforeach
         </select>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Paiements à rattacher (optionnel)</label>
+        @forelse($paiementsLibres as $paiement)
+            <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px;">
+                <input type="checkbox" name="paiement_ids[]" value="{{ $paiement->id }}">
+                {{ $paiement->eleve->nom ?? '' }} {{ $paiement->eleve->prenom ?? '' }} —
+                {{ $paiement->typeFrais->libelle ?? '' }} —
+                {{ number_format($paiement->montant_paye, 0, ',', ' ') }} FCFA ({{ $paiement->date_paiement }})
+            </label>
+        @empty
+            <p style="font-size: 13px; color: #999;">Aucun paiement en attente de reçu.</p>
+        @endforelse
     </div>
 
     <div style="margin-bottom: 20px;">
@@ -54,5 +66,4 @@
 </form>
 </div>
 </div>
-
 @endsection

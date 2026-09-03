@@ -29,8 +29,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(fun
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
 Route::resource('types-frais', TypeFraisController::class);
+Route::get('matieres/niveau/{niveau}', [MatiereController::class, 'niveau'])->name('matieres.niveau');
 Route::resource('matieres', MatiereController::class);
+Route::get('inscriptions/rechercher-eleve/{matricule}', [InscriptionController::class, 'rechercherEleve'])->name('inscriptions.rechercher-eleve');
 Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
@@ -45,7 +48,11 @@ Route::resource('plaintes', PlainteController::class);
     Route::resource('classes', ClasseController::class);
 
     // Gestion des élèves
-    Route::resource('eleves', EleveController::class);
+    Route::resource('eleves', EleveController::class)->parameters(['eleves' => 'eleve'])->except(['create', 'store']);
+
+Route::get('eleves/create', function () {
+    return redirect()->route('admin.inscriptions.create');
+})->name('eleves.create');
 
 });
 

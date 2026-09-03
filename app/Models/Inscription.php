@@ -13,6 +13,27 @@ class Inscription extends Model
         'classe_id',
         'annee_scolaire',
         'date_inscription',
-        'statut'
+        'statut',
+        'decision'
     ];
+
+    public function eleve()
+    {
+        return $this->belongsTo(Eleve::class, 'eleve_id');
+    }
+
+    public function classe()
+    {
+        return $this->belongsTo(Classe::class, 'classe_id');
+    }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class);
+    }
+
+    public function recu()
+    {
+        return $this->hasOne(Recu::class);
+    }
 }
