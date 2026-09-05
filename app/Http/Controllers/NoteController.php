@@ -10,14 +10,29 @@ use App\Models\Inscription;
 use App\Models\Classe;
 
 class NoteController extends Controller
-{
+  {
     public function index()
-    {
-        $notes = Note::with(['eleve', 'matiere', 'enseignant'])
-            ->orderBy('annee_scolaire', 'desc')
-            ->get();
-        return view('admin.notes.index', compact('notes'));
-    }
+{
+    $eleves = Note::with('eleve')
+        ->get()
+        ->groupBy('eleve_id')
+        ->map(function ($notes) {
+            $eleve = $notes->first()->eleve;
+            return [
+                'id' => $eleve->id ?? null,
+                'nom' => $eleve->nom ?? 'N/A',
+                'prenom' => $eleve->prenom ?? '',
+                'matricule' => $eleve->matricule ?? 'N/A',
+                'nb_notes' => $notes->count(),
+                'derniere_annee' => $notes->sortByDesc('annee_scolaire')->first()->annee_scolaire,
+            ];
+        })
+        ->filter(fn($e) => $e['id'] !== null)
+        ->sortBy('nom')
+        ->values();
+
+    return view('admin.notes.index', compact('eleves'));
+}
 
     public function create()
 {
@@ -142,54 +157,83 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
         Note::findOrFail($id)->delete();
         return redirect('/admin/notes')->with('success', 'Note supprimée !');
     }
-    public function bulletin($eleveId, $anneeScolaire)
+    
+   public function bulletin($eleveId, $anneeScolaire)
 {
     $eleve = Eleve::findOrFail($eleveId);
 
+    $inscription = \App\Models\Inscription::where('eleve_id', $eleveId)
+        ->where('annee_scolaire', $anneeScolaire)
+        ->with('classe')
+        ->first();
+
+    $niveau = $inscription->classe->niveau ?? null;
+
     $periodes = ['1er trimestre', '2eme trimestre', '3eme trimestre'];
-    $bulletin = [];
-    $moyennesGenerales = [];
 
-    foreach ($periodes as $periode) {
-        $notes = Note::with('matiere')
-            ->where('eleve_id', $eleveId)
-            ->where('annee_scolaire', $anneeScolaire)
-            ->where('periode', $periode)
-            ->get()
-            ->groupBy('matiere_id');
+    $toutesNotes = Note::with('matiere')
+        ->where('eleve_id', $eleveId)
+        ->where('annee_scolaire', $anneeScolaire)
+        ->get();
 
-        $moyennesParMatiere = [];
+    if ($niveau) {
+        $nomsMatieres = Matiere::where('niveau', $niveau)->orderBy('nom')->pluck('nom', 'id');
+    } else {
+        $nomsMatieres = $toutesNotes->pluck('matiere.nom', 'matiere_id')->unique();
+    }
 
-        foreach ($notes as $matiereId => $notesMatiere) {
-            $moyenneNotes = $notesMatiere->avg(function ($note) {
-                return ($note->note / $note->note_max) * 20;
-            });
-
-            $moyennesParMatiere[] = [
-                'matiere' => $notesMatiere->first()->matiere->nom ?? 'N/A',
-                'moyenne' => round($moyenneNotes, 2),
-            ];
-        }
-
-        $moyenneGeneraleTrimestre = count($moyennesParMatiere) > 0
-            ? round(collect($moyennesParMatiere)->avg('moyenne'), 2)
-            : null;
-
-        $bulletin[$periode] = [
-            'matieres' => $moyennesParMatiere,
-            'moyenne_generale' => $moyenneGeneraleTrimestre,
-        ];
-
-        if ($moyenneGeneraleTrimestre !== null) {
-            $moyennesGenerales[] = $moyenneGeneraleTrimestre;
+    $tableau = [];
+    foreach ($nomsMatieres as $matiereId => $nom) {
+        $tableau[$matiereId] = ['nom' => $nom];
+        foreach ($periodes as $periode) {
+            $tableau[$matiereId][$periode] = null;
         }
     }
 
+    foreach ($toutesNotes->groupBy('periode') as $periode => $notesPeriode) {
+        foreach ($notesPeriode->groupBy('matiere_id') as $matiereId => $notesMatiere) {
+            $moyenne = round($notesMatiere->avg(function ($n) {
+                return ($n->note / $n->note_max) * 20;
+            }), 2);
+
+            if (!isset($tableau[$matiereId])) {
+                $tableau[$matiereId] = ['nom' => $notesMatiere->first()->matiere->nom ?? 'N/A'];
+                foreach ($periodes as $p) {
+                    $tableau[$matiereId][$p] = null;
+                }
+            }
+
+            $tableau[$matiereId][$periode] = $moyenne;
+        }
+    }
+
+    // Fonction d'appréciation selon la moyenne
+    $appreciation = function ($moyenne) {
+        if ($moyenne === null) return null;
+        if ($moyenne >= 16) return 'Excellent';
+        if ($moyenne >= 14) return 'Très Bien';
+        if ($moyenne >= 12) return 'Bien';
+        if ($moyenne >= 10) return 'Assez-Bien';
+        return 'Insuffisant';
+    };
+
+    $moyennesTrimestrielles = [];
+    $appreciationsTrimestrielles = [];
+
+    foreach ($periodes as $periode) {
+        $valeurs = collect($tableau)->pluck($periode)->filter(fn($v) => $v !== null);
+        $moy = $valeurs->count() > 0 ? round($valeurs->avg(), 2) : null;
+        $moyennesTrimestrielles[$periode] = $moy;
+        $appreciationsTrimestrielles[$periode] = $appreciation($moy);
+    }
+
     $moyenneAnnuelle = null;
+    $appreciationAnnuelle = null;
     $decision = null;
 
-    if (count($moyennesGenerales) === 3) {
-        $moyenneAnnuelle = round(array_sum($moyennesGenerales) / 3, 2);
+    if (collect($moyennesTrimestrielles)->filter()->count() === 3) {
+        $moyenneAnnuelle = round(array_sum($moyennesTrimestrielles) / 3, 2);
+        $appreciationAnnuelle = $appreciation($moyenneAnnuelle);
         $decision = $moyenneAnnuelle >= 10 ? 'admis' : 'refuse';
 
         \App\Models\Inscription::where('eleve_id', $eleveId)
@@ -197,8 +241,12 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
             ->update(['decision' => $decision]);
     }
 
+    $classeNom = $inscription->classe->nom ?? 'N/A';
+
     return view('admin.notes.bulletin', compact(
-        'eleve', 'anneeScolaire', 'bulletin', 'moyenneAnnuelle', 'decision'
+        'eleve', 'anneeScolaire', 'periodes', 'tableau',
+        'moyennesTrimestrielles', 'appreciationsTrimestrielles',
+        'moyenneAnnuelle', 'appreciationAnnuelle', 'decision', 'classeNom'
     ));
 }
 }

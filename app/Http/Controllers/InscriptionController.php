@@ -79,6 +79,8 @@ class InscriptionController extends Controller
 
 'date_naissance' => 'required_if:mode,nouveau|nullable|date',
 
+'lieu_naissance' => 'nullable|string|max:150',
+
 'sexe' => 'required_if:mode,nouveau|nullable|in:M,F',
 
 'nom_parent' => 'nullable|string|max:150',
@@ -121,6 +123,8 @@ $eleve = Eleve::create([
 'prenom' => $request->prenom,
 
 'date_naissance' => $request->date_naissance,
+
+'lieu_naissance' => $request->lieu_naissance,
 
 'sexe' => $request->sexe,
 

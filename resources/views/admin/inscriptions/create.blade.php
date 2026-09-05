@@ -72,6 +72,12 @@
     </div>
 
     <div style="margin-bottom: 20px;">
+    <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Lieu de naissance</label>
+    <input type="text" name="lieu_naissance" id="lieu_naissance" value="{{ old('lieu_naissance') }}"
+        style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
         <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Sexe</label>
         <select name="sexe" id="sexe"
             style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">

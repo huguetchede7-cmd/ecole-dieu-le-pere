@@ -16,6 +16,7 @@ class Eleve extends Model
         'nom',
         'prenom',
         'date_naissance',
+        'lieu_naissance',
         'sexe',
         'nom_parent',
         'contact_parent',
