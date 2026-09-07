@@ -7,9 +7,9 @@
 <div style="max-width: 850px;">
 
 <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-<a href="{{ route('admin.eleves.show', $eleve->id) }}"
+<a href="{{ route('admin.notes.index') }}"
 style="background: #f0f0f0; color: #333; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px;">
-← Retour à la fiche élève
+← Retour à la liste
 </a>
 </div>
 

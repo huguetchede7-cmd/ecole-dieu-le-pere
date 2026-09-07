@@ -38,15 +38,16 @@
     <h5 style="margin-bottom: 16px; color: #333;">Rechercher l'élève</h5>
 
     <div style="display:flex; gap:10px; margin-bottom:16px;">
-        <input type="text" id="matricule_recherche" placeholder="Ex: MAT-2026-00001"
-            style="flex:1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
-        <button type="button" onclick="rechercherEleve()"
-            style="background:#1a73e8; color:white; border:none; padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
-            Rechercher
-        </button>
-    </div>
+    <input type="text" id="matricule_recherche" placeholder="Matricule, nom ou prénom"
+        style="flex:1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+    <button type="button" onclick="rechercherEleve()"
+        style="background:#1a73e8; color:white; border:none; padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+        Rechercher
+    </button>
+</div>
 
-    <div id="resultat-recherche"></div>
+<div id="liste-resultats"></div>
+<div id="resultat-recherche"></div>
 </div>
 
 {{-- ===== BLOC NOUVEL ELEVE ===== --}}
@@ -116,8 +117,8 @@
 
 <div style="margin-bottom: 20px;">
     <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Année scolaire</label>
-    <input type="text" name="annee_scolaire" value="{{ old('annee_scolaire', '2025-2026') }}" required
-        style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+    <input type="text" name="annee_scolaire" id="annee_scolaire" value="{{ old('annee_scolaire', '2025-2026') }}" required
+      style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
 </div>
 
 <div style="margin-bottom: 20px;">
@@ -217,6 +218,14 @@ container.addEventListener('click', function (e) {
 // ===== Ordre des niveaux (doit correspondre au contrôleur ClasseController) =====
 const ordreNiveaux = ['Maternelle 1', 'Maternelle 2', 'CI', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'];
 
+function anneeSuivante(anneeStr) {
+    const parts = anneeStr.split('-');
+    if (parts.length !== 2) return anneeStr;
+    const debut = parseInt(parts[0], 10) + 1;
+    const fin = parseInt(parts[1], 10) + 1;
+    return debut + '-' + fin;
+}
+
 // ===== Bascule Nouveau / Réinscription =====
 function setMode(mode) {
     document.getElementById('mode').value = mode;
@@ -256,22 +265,56 @@ function setMode(mode) {
 
 // ===== Recherche d'élève par matricule =====
 function rechercherEleve() {
-    const matricule = document.getElementById('matricule_recherche').value.trim();
+    const recherche = document.getElementById('matricule_recherche').value.trim();
+    const listeDiv = document.getElementById('liste-resultats');
     const resultatDiv = document.getElementById('resultat-recherche');
 
-    if (!matricule) {
-        resultatDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Tape un matricule.</p>';
+    resultatDiv.innerHTML = '';
+    document.getElementById('eleve_id').value = '';
+
+    if (!recherche) {
+        listeDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Tape un matricule, un nom ou un prénom.</p>';
         return;
     }
 
-    resultatDiv.innerHTML = '<p style="color:#999; font-size:13px;">Recherche en cours...</p>';
+    listeDiv.innerHTML = '<p style="color:#999; font-size:13px;">Recherche en cours...</p>';
 
-    fetch(`/admin/inscriptions/rechercher-eleve/${encodeURIComponent(matricule)}`)
+    fetch(`/admin/inscriptions/rechercher-eleve/${encodeURIComponent(recherche)}`)
+        .then(res => res.json())
+        .then(eleves => {
+            if (eleves.length === 0) {
+                listeDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">❌ Aucun élève trouvé.</p>';
+                return;
+            }
+
+            let html = '<div style="border:1px solid #ddd; border-radius:8px; overflow:hidden; margin-bottom:16px;">';
+            eleves.forEach(e => {
+                html += `
+                    <div class="resultat-item" data-id="${e.id}"
+                        style="padding:10px 14px; cursor:pointer; font-size:14px; color:#333; border-bottom:1px solid #f0f0f0;"
+                        onclick="choisirEleve(${e.id})">
+                        <strong>${e.nom} ${e.prenom}</strong>
+                        <span style="color:#999; font-size:12px;"> — ${e.matricule ?? 'sans matricule'}</span>
+                    </div>`;
+            });
+            html += '</div>';
+
+            listeDiv.innerHTML = html;
+        })
+        .catch(() => {
+            listeDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Erreur lors de la recherche.</p>';
+        });
+}
+
+function choisirEleve(id) {
+    const resultatDiv = document.getElementById('resultat-recherche');
+    resultatDiv.innerHTML = '<p style="color:#999; font-size:13px;">Chargement...</p>';
+
+    fetch(`/admin/inscriptions/details-eleve/${id}`)
         .then(res => res.json())
         .then(data => {
             if (!data.trouve) {
-                resultatDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">❌ Aucun élève trouvé avec ce matricule.</p>';
-                document.getElementById('eleve_id').value = '';
+                resultatDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Erreur, élève introuvable.</p>';
                 return;
             }
 
@@ -304,13 +347,13 @@ function rechercherEleve() {
                         ${decisionTexte}
                     </p>`;
 
-                // Filtrer les classes proposées selon le niveau actuel et le niveau suivant
                 const indexActuel = ordreNiveaux.indexOf(d.niveau);
                 const niveauSuivant = (indexActuel >= 0 && indexActuel < ordreNiveaux.length - 1)
                     ? ordreNiveaux[indexActuel + 1]
                     : null;
 
                 filtrerClasses(d.niveau, niveauSuivant);
+                document.getElementById('annee_scolaire').value = anneeSuivante(d.annee_scolaire);
             } else {
                 html += `<p style="font-size:13px; color:#999;">Aucune inscription précédente trouvée pour cet élève.</p>`;
                 filtrerClasses(null, null);
@@ -318,11 +361,13 @@ function rechercherEleve() {
 
             html += `</div>`;
             resultatDiv.innerHTML = html;
+
+            document.getElementById('liste-resultats').innerHTML = '';
         })
         .catch(() => {
-            resultatDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Erreur lors de la recherche.</p>';
+            resultatDiv.innerHTML = '<p style="color:#c62828; font-size:13px;">Erreur lors du chargement.</p>';
         });
-}
+        }
 
 // Ne montrer dans le menu "Classe" que le niveau actuel + le niveau supérieur
 function filtrerClasses(niveauActuel, niveauSuivant) {

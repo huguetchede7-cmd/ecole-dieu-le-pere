@@ -33,7 +33,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(fun
 Route::resource('types-frais', TypeFraisController::class);
 Route::get('matieres/niveau/{niveau}', [MatiereController::class, 'niveau'])->name('matieres.niveau');
 Route::resource('matieres', MatiereController::class);
-Route::get('inscriptions/rechercher-eleve/{matricule}', [InscriptionController::class, 'rechercherEleve'])->name('inscriptions.rechercher-eleve');
+Route::get('inscriptions/rechercher-eleve/{recherche}', [InscriptionController::class, 'rechercherEleve'])->name('inscriptions.rechercher-eleve');
+Route::get('inscriptions/details-eleve/{id}', [InscriptionController::class, 'detailsEleve'])->name('inscriptions.details-eleve');
 Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);

@@ -22,35 +22,47 @@ class InscriptionController extends Controller
         return view('admin.inscriptions.index', compact('inscriptions'));
     }
 
-    public function rechercherEleve($matricule)
-    {
-        $eleve = Eleve::where('matricule', $matricule)->first();
+    public function rechercherEleve($recherche)
+{
+    $eleves = Eleve::where('matricule', $recherche)
+        ->orWhere('nom', 'like', "%{$recherche}%")
+        ->orWhere('prenom', 'like', "%{$recherche}%")
+        ->orderBy('nom')
+        ->limit(15)
+        ->get(['id', 'nom', 'prenom', 'matricule']);
 
-        if (!$eleve) {
-            return response()->json(['trouve' => false]);
-        }
+    return response()->json($eleves);
+}
 
-        $derniereInscription = Inscription::where('eleve_id', $eleve->id)
-            ->orderBy('annee_scolaire', 'desc')
-            ->with('classe')
-            ->first();
+public function detailsEleve($id)
+{
+    $eleve = Eleve::find($id);
 
-        return response()->json([
-            'trouve' => true,
-            'eleve' => [
-                'id' => $eleve->id,
-                'nom' => $eleve->nom,
-                'prenom' => $eleve->prenom,
-                'matricule' => $eleve->matricule,
-            ],
-            'derniere_inscription' => $derniereInscription ? [
-                'classe' => $derniereInscription->classe->nom ?? null,
-                'niveau' => $derniereInscription->classe->niveau ?? null,
-                'annee_scolaire' => $derniereInscription->annee_scolaire,
-                'decision' => $derniereInscription->decision,
-            ] : null,
-        ]);
+    if (!$eleve) {
+        return response()->json(['trouve' => false]);
     }
+
+    $derniereInscription = Inscription::where('eleve_id', $eleve->id)
+        ->orderBy('annee_scolaire', 'desc')
+        ->with('classe')
+        ->first();
+
+    return response()->json([
+        'trouve' => true,
+        'eleve' => [
+            'id' => $eleve->id,
+            'nom' => $eleve->nom,
+            'prenom' => $eleve->prenom,
+            'matricule' => $eleve->matricule,
+        ],
+        'derniere_inscription' => $derniereInscription ? [
+            'classe' => $derniereInscription->classe->nom ?? null,
+            'niveau' => $derniereInscription->classe->niveau ?? null,
+            'annee_scolaire' => $derniereInscription->annee_scolaire,
+            'decision' => $derniereInscription->decision,
+        ] : null,
+    ]);
+}
 
     public function create()
     {
