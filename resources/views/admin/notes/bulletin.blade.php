@@ -1,13 +1,50 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #zone-bulletin, #zone-bulletin * {
+        visibility: visible;
+    }
+    #zone-bulletin {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    #bouton-imprimer, #bouton-retour {
+    display: none !important;
+}
+    #zone-bulletin table td, #zone-bulletin table th {
+        padding: 4px 10px !important;
+    }
+    #zone-bulletin h2 { font-size: 15px !important; }
+    #zone-bulletin h3 { font-size: 16px !important; margin-top: 6px !important; margin-bottom: 8px !important; }
+    #zone-bulletin h4 { font-size: 12px !important; margin-bottom: 8px !important; }
+    #zone-bulletin > div > div { padding: 14px !important; }
+    #zone-bulletin div[style*="border: 2px solid #1a73e8"] { padding: 12px !important; margin-top: 12px !important; }
+    #zone-bulletin div[style*="margin-top: 24px"] { margin-top: 10px !important; }
+    @page {
+        size: A4;
+        margin: 8mm;
+    }
+}
+</style>
+@endpush
+
 @section('title', 'Bulletin')
 @section('page_title', 'Bulletin de ' . $eleve->prenom . ' ' . $eleve->nom)
 
 @section('content')
-<div style="max-width: 850px;">
+<div id="zone-bulletin" style="max-width: 850px;">
 
 <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-<a href="{{ route('admin.notes.index') }}"
+<a href="{{ route('admin.notes.index') }}" id="bouton-retour"
 style="background: #f0f0f0; color: #333; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px;">
 ← Retour à la liste
 </a>
@@ -175,7 +212,7 @@ Aucune matière trouvée.
 </div>
 
 <div style="border: 1px solid #ddd; border-radius: 10px; padding: 18px;">
-<div style="font-size: 12px; color: #999; margin-bottom: 90px;">Nom et signature du Directeur</div>
+<div style="font-size: 12px; color: #999; margin-bottom: 40px;">Nom et signature du Directeur</div>
 <div style="border-top: 1px solid #ccc;"></div>
 </div>
 </div>
@@ -183,7 +220,7 @@ Aucune matière trouvée.
 </div>
 
 <div style="margin-top: 24px; text-align: center;">
-<button onclick="window.print()" style="background: #1a73e8; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+<button id="bouton-imprimer" onclick="window.print()" style="background: #1a73e8; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer;">
 🖨️ Imprimer
 </button>
 </div>
