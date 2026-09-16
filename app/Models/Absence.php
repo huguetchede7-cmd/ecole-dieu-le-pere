@@ -6,16 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Absence extends Model
 {
-    //
-}
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Absence extends Model
-{
     protected $table = 'absences';
 
     protected $fillable = [
