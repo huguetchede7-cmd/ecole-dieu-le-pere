@@ -8,6 +8,7 @@ use App\Http\Controllers\UtilisateurController; // ← Ajout recommandé
 use App\Http\Controllers\MatiereController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\TypeFraisController;
+use App\Http\Controllers\EcheanceController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\AbsenceController;
@@ -26,11 +27,10 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // ==================== ADMIN ====================
 Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
 Route::resource('types-frais', TypeFraisController::class);
+Route::resource('echeances', EcheanceController::class);
 Route::get('matieres/niveau/{niveau}', [MatiereController::class, 'niveau'])->name('matieres.niveau');
 Route::resource('matieres', MatiereController::class);
 Route::get('inscriptions/rechercher-eleve/{recherche}', [InscriptionController::class, 'rechercherEleve'])->name('inscriptions.rechercher-eleve');

@@ -12,10 +12,26 @@ class TypeFrais extends Model
         'libelle',
         'montant',
         'description',
+        'varie_par_niveau',
+        'categorie',
     ];
 
     public function paiements()
     {
         return $this->hasMany(Paiement::class);
+    }
+
+    public function fraisNiveaux()
+    {
+        return $this->hasMany(FraisNiveau::class);
+    }
+
+    public function montantPour($niveau)
+    {
+        if (!$this->varie_par_niveau) {
+            return $this->montant;
+        }
+
+        return $this->fraisNiveaux->firstWhere('niveau', $niveau)?->montant;
     }
 }
