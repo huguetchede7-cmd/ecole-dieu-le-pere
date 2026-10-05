@@ -18,6 +18,13 @@ class DashboardController extends Controller
     {
         $anneeScolaire = $request->query('annee_scolaire', '2025-2026');
 
+$anneeDepart = 2023;
+$anneesDisponibles = [];
+for ($i = 0; $i <= 10; $i++) {
+    $debut = $anneeDepart + $i;
+    $anneesDisponibles[] = $debut . '-' . ($debut + 1);
+}
+
         $classes = Classe::where('annee_scolaire', $anneeScolaire)->get();
         $totalClasses = $classes->count();
         $totalEnseignants = Utilisateur::where('role', 'enseignant')->count();
@@ -96,7 +103,7 @@ $alertesEcheances = Echeance::where('annee_scolaire', $anneeScolaire)
     });
 
         return view('admin.dashboard', compact(
-    'anneeScolaire', 'totalClasses', 'totalEnseignants',
+    'anneeScolaire', 'anneesDisponibles', 'totalClasses', 'totalEnseignants',
     'montantAttenduTotal', 'montantEncaisseTotal', 'soldeRestant',
     'elevesEnRetard', 'alertesEcheances'
 ));

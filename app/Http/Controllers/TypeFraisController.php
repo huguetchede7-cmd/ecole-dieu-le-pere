@@ -32,7 +32,7 @@ class TypeFraisController extends Controller
         'description' => 'nullable|string|max:255',
         'montants_niveaux' => 'nullable|array',
         'montants_niveaux.*' => 'nullable|numeric|min:0',
-        'categorie' => 'required|in:inscription,reinscription,autre',
+        'categorie' => 'required|in:inscription,reinscription,scolarite,autre',
     ]);
 
     $varie = $request->boolean('varie_par_niveau');
@@ -75,6 +75,7 @@ class TypeFraisController extends Controller
         'description' => 'nullable|string|max:255',
         'montants_niveaux' => 'nullable|array',
         'montants_niveaux.*' => 'nullable|numeric|min:0',
+        'categorie' => 'required|in:inscription,reinscription,scolarite,autre',
     ]);
 
     $typeFrais = TypeFrais::findOrFail($id);

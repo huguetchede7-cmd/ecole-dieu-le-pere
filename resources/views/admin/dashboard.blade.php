@@ -5,8 +5,24 @@
 
 @section('content')
 
-<div style="margin-bottom: 20px; font-size: 14px; color: #666;">
-    📅 Année scolaire : <strong style="color:#333;">{{ $anneeScolaire }}</strong>
+<div style="background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <h3 style="font-size:16px; color:#333; margin-bottom:12px;">🎉 Bienvenue sur la plateforme</h3>
+    <p style="color:#666; font-size:14px; line-height:1.8;">
+        Vous êtes connecté en tant qu'<strong>Administrateur</strong>.
+        Utilisez le menu à gauche pour gérer les élèves, les classes, les paiements, les notes et les absences de l'école <strong>Dieu le Père</strong>.
+    </p>
+</div>
+
+<div style="background:white; border-radius:12px; padding:18px 24px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border-left:4px solid #1a73e8; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:13px; color:#666;">📅 Année scolaire</div>
+    <form method="GET" action="{{ route('admin.dashboard') }}">
+        <select name="annee_scolaire" onchange="this.form.submit()"
+            style="padding: 8px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: 700; color: #1a73e8; background: #f0f6ff; cursor: pointer;">
+            @foreach($anneesDisponibles as $annee)
+            <option value="{{ $annee }}" {{ $annee === $anneeScolaire ? 'selected' : '' }}>{{ $annee }}</option>
+            @endforeach
+        </select>
+    </form>
 </div>
 
 <div style="display:flex; gap:20px; margin-bottom:30px; flex-wrap:wrap;">
@@ -101,14 +117,6 @@
         Aucun élève en retard de paiement pour l'instant. 🎉
     </div>
     @endif
-</div>
-
-<div style="background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <h3 style="font-size:16px; color:#333; margin-bottom:12px;">🎉 Bienvenue sur la plateforme</h3>
-    <p style="color:#666; font-size:14px; line-height:1.8;">
-        Vous êtes connecté en tant qu'<strong>Administrateur</strong>.
-        Utilisez le menu à gauche pour gérer les élèves, les classes, les paiements, les notes et les absences de l'école <strong>Dieu le Père</strong>.
-    </p>
 </div>
 
 @endsection

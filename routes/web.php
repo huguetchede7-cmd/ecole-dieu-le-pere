@@ -37,6 +37,8 @@ Route::get('inscriptions/rechercher-eleve/{recherche}', [InscriptionController::
 Route::get('inscriptions/details-eleve/{id}', [InscriptionController::class, 'detailsEleve'])->name('inscriptions.details-eleve');
 Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
+Route::get('paiements/eleves-classe/{classe}', [PaiementController::class, 'elevesParClasse'])->name('paiements.eleves-classe');
+Route::get('paiements/solde-eleve/{eleve}/{classe}', [PaiementController::class, 'soldeEleve'])->name('paiements.solde-eleve');
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 Route::resource('notes', NoteController::class);
 Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');
