@@ -26,6 +26,8 @@
 
 <a href="/admin/echeances" class="menu-item {{ request()->is('admin/echeances*') ? 'active' : '' }}"><span>📆</span> Échéances</a>
 
+<a href="/admin/suivi-paiements" class="menu-item {{ request()->is('admin/suivi-paiements*') ? 'active' : '' }}"><span>✅</span> Suivi des paiements</a>
+
 <a href="#" class="menu-item" style="opacity:0.5; cursor:not-allowed;"><span>📒</span> Livret de caisse <span style="font-size:10px;">(bientôt)</span></a>
 
 

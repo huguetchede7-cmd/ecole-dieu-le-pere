@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'omniroute' => [
+        'url'   => env('OMNIROUTE_URL'),
+        'key'   => env('OMNIROUTE_API_KEY'),
+        'model' => env('OMNIROUTE_MODEL'),
+    ],
 
 ];

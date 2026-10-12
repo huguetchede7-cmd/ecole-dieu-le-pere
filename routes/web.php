@@ -27,7 +27,7 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // ==================== ADMIN ====================
 Route::prefix('admin')->name('admin.')->middleware('auth.role:admin')->group(function () {
 
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
 Route::resource('types-frais', TypeFraisController::class);
 Route::resource('echeances', EcheanceController::class);
@@ -39,6 +39,10 @@ Route::resource('inscriptions', InscriptionController::class);
 Route::resource('paiements', PaiementController::class);
 Route::get('paiements/eleves-classe/{classe}', [PaiementController::class, 'elevesParClasse'])->name('paiements.eleves-classe');
 Route::get('paiements/solde-eleve/{eleve}/{classe}', [PaiementController::class, 'soldeEleve'])->name('paiements.solde-eleve');
+Route::get('suivi-paiements', [\App\Http\Controllers\SuiviPaiementController::class, 'index'])->name('suivi-paiements.index');
+Route::get('suivi-paiements/rechercher', [\App\Http\Controllers\SuiviPaiementController::class, 'rechercher'])->name('suivi-paiements.rechercher');
+Route::get('suivi-paiements/fiche/{eleve}', [\App\Http\Controllers\SuiviPaiementController::class, 'fiche'])->name('suivi-paiements.fiche');
+Route::post('suivi-paiements/encaisser', [\App\Http\Controllers\SuiviPaiementController::class, 'encaisser'])->name('suivi-paiements.encaisser');
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 Route::resource('notes', NoteController::class);
 Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');
