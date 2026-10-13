@@ -43,6 +43,7 @@ Route::get('suivi-paiements', [\App\Http\Controllers\SuiviPaiementController::cl
 Route::get('suivi-paiements/rechercher', [\App\Http\Controllers\SuiviPaiementController::class, 'rechercher'])->name('suivi-paiements.rechercher');
 Route::get('suivi-paiements/fiche/{eleve}', [\App\Http\Controllers\SuiviPaiementController::class, 'fiche'])->name('suivi-paiements.fiche');
 Route::post('suivi-paiements/encaisser', [\App\Http\Controllers\SuiviPaiementController::class, 'encaisser'])->name('suivi-paiements.encaisser');
+Route::get('livret-caisse', [\App\Http\Controllers\LivretCaisseController::class, 'index'])->name('livret-caisse.index');
 Route::resource('recus', RecuController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 Route::resource('notes', NoteController::class);
 Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');

@@ -28,8 +28,7 @@
 
 <a href="/admin/suivi-paiements" class="menu-item {{ request()->is('admin/suivi-paiements*') ? 'active' : '' }}"><span>✅</span> Suivi des paiements</a>
 
-<a href="#" class="menu-item" style="opacity:0.5; cursor:not-allowed;"><span>📒</span> Livret de caisse <span style="font-size:10px;">(bientôt)</span></a>
-
+<a href="/admin/livret-caisse" class="menu-item {{ request()->is('admin/livret-caisse*') ? 'active' : '' }}"><span>📒</span> Livret de caisse</a>
 
 <div class="menu-label">Scolarité</div>
 
