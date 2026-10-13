@@ -55,10 +55,14 @@ class LivretCaisseController extends Controller
         $total = $paiements->sum('montant_paye');
         $nbRecus = $paiements->pluck('recu_id')->filter()->unique()->count();
         $nbEleves = $paiements->pluck('eleve_id')->unique()->count();
+        $totalEspeces = $paiements->where('mode_paiement', 'especes')->sum('montant_paye');
+        $totalMobileMoney = $paiements->where('mode_paiement', 'mobile_money')->sum('montant_paye');
+        $totalAutres = $total - $totalEspeces - $totalMobileMoney;
 
-        return view('admin.livret-caisse.index', compact(
+            return view('admin.livret-caisse.index', compact(
             'mode', 'date', 'mois', 'anneeScolaire', 'anneesDisponibles',
-            'paiements', 'total', 'nbRecus', 'nbEleves', 'libelle'
+            'paiements', 'total', 'nbRecus', 'nbEleves', 'libelle',
+            'totalEspeces', 'totalMobileMoney', 'totalAutres'
         ));
     }
 

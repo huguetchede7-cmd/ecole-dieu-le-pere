@@ -99,6 +99,23 @@
         </div>
     </div>
 
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="flex: 1; min-width: 200px; background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size: 12px; color: #888;">💵 Espèces</div>
+            <div style="font-size: 20px; font-weight: 700; color: #333;">{{ number_format($totalEspeces, 0, ',', ' ') }} FCFA</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size: 12px; color: #888;">📱 Mobile Money</div>
+            <div style="font-size: 20px; font-weight: 700; color: #333;">{{ number_format($totalMobileMoney, 0, ',', ' ') }} FCFA</div>
+        </div>
+        @if($totalAutres > 0)
+        <div style="flex: 1; min-width: 200px; background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size: 12px; color: #888;">Autres modes</div>
+            <div style="font-size: 20px; font-weight: 700; color: #333;">{{ number_format($totalAutres, 0, ',', ' ') }} FCFA</div>
+        </div>
+        @endif
+    </div>
+
     <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <thead>
