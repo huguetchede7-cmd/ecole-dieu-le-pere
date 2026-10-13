@@ -77,11 +77,12 @@
 
                 <div style="text-align: center; flex: 1;">
                     <p style="font-size: 10px; color: #333; margin-bottom: 1px;">RÉPUBLIQUE DU BÉNIN</p>
-                    <p style="font-size: 8px; color: #666; margin-bottom: 4px;">Ministère des Enseignements Maternels et Primaires</p>
+                    @php $ecole = \App\Models\Parametre::ecole(); @endphp
+                    <p style="font-size: 8px; color: #666; margin-bottom: 4px;">{{ $ecole['ministere'] }}</p>
 
-                    <h2 style="font-size: 13px; color: #1a73e8; margin-bottom: 1px;">École Primaire Privée Dieu le Père</h2>
-                    <p style="font-size: 8px; color: #666; margin-bottom: 1px;">Autorisation N° 049/MEMP/CAB/DC/SGM/DPP/DGS/DEPES/SA/2005</p>
-                    <p style="font-size: 8px; color: #666; margin-bottom: 4px;">Tél: 23767777 — BP: 08 Parakou — dieulepere@yahoo.fr</p>
+                    <h2 style="font-size: 13px; color: #1a73e8; margin-bottom: 1px;">{{ $ecole['nom'] }}</h2>
+                    <p style="font-size: 8px; color: #666; margin-bottom: 1px;">Autorisation N° {{ $ecole['autorisation'] }}</p>
+                    <p style="font-size: 8px; color: #666; margin-bottom: 4px;">Tél: {{ $ecole['telephone'] }} — BP: {{ $ecole['bp'] }} — {{ $ecole['email'] }}</p>
 
                     <p style="font-size: 11px; color: #666;">Reçu d'inscription et de paiement {{ $i === 0 ? '(Archive école)' : '(Copie parent)' }}</p>
                 </div>

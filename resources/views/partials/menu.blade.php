@@ -40,3 +40,4 @@
 <div class="menu-label">Secrétariat</div>
 
 <a href="/admin/plaintes" class="menu-item {{ request()->is('admin/plaintes*') ? 'active' : '' }}"><span>📋</span> Plaintes</a>
+<a href="/admin/parametres" class="menu-item {{ request()->is('admin/parametres*') ? 'active' : '' }}"><span>⚙️</span> Paramètres</a>

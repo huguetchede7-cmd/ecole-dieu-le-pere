@@ -16,7 +16,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $anneeScolaire = $request->query('annee_scolaire', '2025-2026');
+    $anneeScolaire = $request->query('annee_scolaire', \App\Models\Parametre::anneeCourante());
 
 $anneeDepart = 2023;
 $anneesDisponibles = [];
@@ -42,6 +42,7 @@ for ($i = 0; $i <= 10; $i++) {
         $montantAttenduTotal = 0;
         $montantEncaisseTotal = 0;
         $elevesEnRetard = [];
+        $montantsPayesParEleve = [];
 
         foreach ($inscriptionsActives as $inscription) {
             $niveau = $inscription->classe->niveau;

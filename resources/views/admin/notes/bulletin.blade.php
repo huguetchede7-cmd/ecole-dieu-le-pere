@@ -64,13 +64,14 @@ style="background: #f0f0f0; color: #333; padding: 10px 20px; border-radius: 8px;
 
 <h2> <p style="font-size: 15px; color: #333333; margin-bottom: 2px;">RÉPUBLIQUE DU BÉNIN</p></h2>
 
-<h2> <p style="font-size: 15px; color: #666; margin-bottom: 10px;">MINISTÈRE DES ENSEIGNEMENTS MATERNELS ET PRIMAIRES</p></h2>
+@php $ecole = \App\Models\Parametre::ecole(); @endphp
+<h2> <p style="font-size: 15px; color: #666; margin-bottom: 10px;">{{ mb_strtoupper($ecole['ministere']) }}</p></h2>
 
-<h2> <p style="font-size: 15px; color: #333; margin-bottom: 4px;">ECOLE PRIMAIRE PRIVÉE DIEU LE PÈRE</p></h2>
+<h2> <p style="font-size: 15px; color: #333; margin-bottom: 4px;">{{ mb_strtoupper($ecole['nom']) }}</p></h2>
 
-<h2> <p style="font-size: 15px; color: #666; margin-bottom: 2px;">AUTORISATION N° 049/MEMP/CAB/DC/SGM/DPP/DGS/DEPES/SA/2005</p></h2>
+<h2> <p style="font-size: 15px; color: #666; margin-bottom: 2px;">AUTORISATION N° {{ mb_strtoupper($ecole['autorisation']) }}</p></h2>
 
-<h2> <p style="font-size: 15px; color: #66fc; margin-bottom: 12px;">Tél:23767777 BP:08 Parakou Email: dieulepere@yahoo.fr</p></h2>
+<h2> <p style="font-size: 15px; color: #66fc; margin-bottom: 12px;">Tél:{{ $ecole['telephone'] }} BP:{{ $ecole['bp'] }} Email: {{ $ecole['email'] }}</p></h2>
 
 <h3 style="font-size: 20px; font-weight: 800; color: #333; margin-top: 14px; margin-bottom: 16px; text-transform: uppercase;">
 BULLETIN DE NOTES

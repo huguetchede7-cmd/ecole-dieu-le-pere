@@ -51,6 +51,9 @@ Route::get('notes/bulletin/{eleve}/{annee_scolaire}', [NoteController::class, 'b
 Route::get('absences/eleves-classe/{classe}/{date}', [AbsenceController::class, 'elevesAvecAbsences'])->name('absences.eleves-classe');
 Route::resource('absences', AbsenceController::class);
 Route::resource('plaintes', PlainteController::class);
+Route::get('parametres', [\App\Http\Controllers\ParametreController::class, 'index'])->name('parametres.index');
+Route::put('parametres', [\App\Http\Controllers\ParametreController::class, 'update'])->name('parametres.update');
+
 
  // Gestion des utilisateurs
     Route::resource('utilisateurs', UtilisateurController::class);

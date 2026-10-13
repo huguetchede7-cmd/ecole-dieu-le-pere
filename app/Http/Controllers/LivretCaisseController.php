@@ -26,9 +26,7 @@ class LivretCaisseController extends Controller
         }
         $anneeScolaire = $request->query('annee_scolaire');
         if (!in_array($anneeScolaire, $anneesDisponibles)) {
-            $m = (int) date('n');
-            $debut = $m >= 7 ? (int) date('Y') : (int) date('Y') - 1;
-            $anneeScolaire = $debut . '-' . ($debut + 1);
+            $anneeScolaire = \App\Models\Parametre::anneeCourante();
         }
 
         $query = Paiement::with(['eleve', 'typeFrais', 'comptable', 'recu', 'inscription.classe']);
