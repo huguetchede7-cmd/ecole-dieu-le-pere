@@ -16,6 +16,19 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+                $role = session('utilisateur_role');
+
+        if ($role === 'enseignant') {
+            $classe = Classe::where('enseignant_id', session('utilisateur_id'))->first();
+            $nbEleves = $classe
+                ? Inscription::where('classe_id', $classe->id)->where('statut', 'actif')->count()
+                : 0;
+            return view('admin.dashboard-enseignant', compact('classe', 'nbEleves'));
+        }
+
+        if ($role === 'secretaire') {
+            return view('admin.dashboard-secretaire');
+        }
     $anneeScolaire = $request->query('annee_scolaire', \App\Models\Parametre::anneeCourante());
 
 $anneeDepart = 2023;

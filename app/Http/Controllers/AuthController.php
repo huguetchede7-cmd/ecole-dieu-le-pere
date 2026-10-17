@@ -38,14 +38,8 @@ class AuthController extends Controller
             'utilisateur_role' => $utilisateur->role
         ]);
 
-        // Redirection selon le rôle
-        return match($utilisateur->role) {
-            'admin'      => redirect('/admin/dashboard'),
-            'directeur'  => redirect('/directeur/dashboard'),
-            'enseignant' => redirect('/enseignant/dashboard'),
-            'comptable'  => redirect('/comptable/dashboard'),
-            'secretaire' => redirect('/secretaire/dashboard'),
-        };
+        // Redirection selon le rôle : chacun arrive sur sa première page
+        return redirect('/admin/dashboard');
     }
 
     // Déconnexion

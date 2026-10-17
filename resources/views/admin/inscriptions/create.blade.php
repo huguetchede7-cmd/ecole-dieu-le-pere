@@ -136,22 +136,10 @@
     </select>
 </div>
 
-<h5 style="margin-bottom: 8px; color: #333;">Paiement à l'inscription</h5>
-<p style="font-size: 13px; color: #999; margin-bottom: 16px;">
-    Optionnel. Le parent peut payer les frais d'inscription, une tranche de scolarité, la totalité, ou ne rien payer maintenant.
-</p>
-
-<div id="paiements-container"></div>
-
-<button type="button" id="add-paiement"
-    style="background: #e8f0fe; color: #1a73e8; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 28px;">
-    + Ajouter un paiement
-</button>
-
 <div style="display: flex; gap: 12px;">
     <button type="submit"
         style="background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
-        ✅ Enregistrer l'inscription
+        Enregistrer l'inscription
     </button>
     <a href="/admin/inscriptions"
         style="background: #f0f0f0; color: #333; padding: 12px 24px; border-radius: 8px; font-size: 14px; text-decoration: none;">

@@ -11,6 +11,7 @@ class Utilisateur extends Model
     protected $fillable = [
         'nom',
         'prenom',
+        'civilite',
         'email',
         'mot_de_passe',
         'role',
@@ -21,4 +22,9 @@ class Utilisateur extends Model
     protected $hidden = [
         'mot_de_passe'
     ];
+        // Classe confiée à cet enseignant (une seule)
+    public function classe()
+    {
+        return $this->hasOne(Classe::class, 'enseignant_id');
+    }
 }

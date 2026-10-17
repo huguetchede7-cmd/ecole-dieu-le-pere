@@ -12,7 +12,8 @@ class Classe extends Model
         'nom',
         'niveau',
         'capacite',
-        'annee_scolaire'
+        'annee_scolaire',
+        'enseignant_id'
     ];
 
     public function inscriptions()
@@ -28,5 +29,9 @@ class Classe extends Model
     public function effectif()
     {
         return $this->inscriptions()->where('statut', 'actif')->count();
+    }
+        public function enseignant()
+    {
+        return $this->belongsTo(Utilisateur::class, 'enseignant_id');
     }
 }

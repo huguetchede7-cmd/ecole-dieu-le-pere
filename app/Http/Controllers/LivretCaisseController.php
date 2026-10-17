@@ -12,7 +12,7 @@ class LivretCaisseController extends Controller
     {
         $mode = $request->query('mode', 'jour');
         if (!in_array($mode, ['jour', 'mois', 'annee'])) {
-            $mode = 'jour';
+        $mode = 'jour';
         }
 
         // Valeurs par défaut (ou valeurs invalides → aujourd'hui)
@@ -55,8 +55,9 @@ class LivretCaisseController extends Controller
         $total = $paiements->sum('montant_paye');
         $nbRecus = $paiements->pluck('recu_id')->filter()->unique()->count();
         $nbEleves = $paiements->pluck('eleve_id')->unique()->count();
-        $totalEspeces = $paiements->where('mode_paiement', 'especes')->sum('montant_paye');
-        $totalMobileMoney = $paiements->where('mode_paiement', 'mobile_money')->sum('montant_paye');
+        $norm = fn($p) => str_replace(' ', '_', strtolower(\Illuminate\Support\Str::ascii($p->mode_paiement)));
+        $totalEspeces = $paiements->filter(fn($p) => $norm($p) === 'especes')->sum('montant_paye');
+        $totalMobileMoney = $paiements->filter(fn($p) => $norm($p) === 'mobile_money')->sum('montant_paye');
         $totalAutres = $total - $totalEspeces - $totalMobileMoney;
 
             return view('admin.livret-caisse.index', compact(

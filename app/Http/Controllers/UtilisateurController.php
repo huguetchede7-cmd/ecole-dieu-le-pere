@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Utilisateur;
+use App\Models\Classe;
+use App\Models\Parametre;
 
 class UtilisateurController extends Controller
 {
@@ -15,13 +17,22 @@ class UtilisateurController extends Controller
         return view('admin.utilisateurs.index', compact('utilisateurs'));
     }
 
-    // Formulaire d'ajout
+        // Formulaire d'ajout
     public function create()
     {
-        return view('admin.utilisateurs.create');
+        $ordre = ['Maternelle 1', 'Maternelle 2', 'CI', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'];
+
+        // Classes de l'année en cours qui n'ont pas encore d'enseignant
+        $classesLibres = Classe::whereNull('enseignant_id')
+            ->where('annee_scolaire', Parametre::anneeCourante())
+            ->get()
+            ->sortBy(fn($c) => [array_search($c->niveau, $ordre), $c->nom])
+            ->values();
+
+        return view('admin.utilisateurs.create', compact('classesLibres'));
     }
 
-    // Enregistrer un utilisateur
+       // Enregistrer un utilisateur
     public function store(Request $request)
     {
         $request->validate([
@@ -31,9 +42,22 @@ class UtilisateurController extends Controller
             'mot_de_passe' => 'required|min:6',
             'role'         => 'required|in:admin,directeur,enseignant,comptable,secretaire',
             'telephone'    => 'nullable|string|max:20',
+            'classe_id'    => 'required_if:role,enseignant|nullable|exists:classes,id',
+            'civilite'     => 'nullable|in:Monsieur,Madame,Mademoiselle',
+        ], [
+            'classe_id.required_if' => 'Choisissez la classe de cet enseignant.',
         ]);
 
-        Utilisateur::create([
+        $classe = null;
+        if ($request->role === 'enseignant') {
+            $classe = Classe::findOrFail($request->classe_id);
+
+            if ($classe->enseignant_id) {
+                return back()->withErrors(['classe_id' => 'Cette classe a déjà un enseignant.'])->withInput();
+            }
+        }
+
+        $utilisateur = Utilisateur::create([
             'nom'          => $request->nom,
             'prenom'       => $request->prenom,
             'email'        => $request->email,
@@ -41,7 +65,12 @@ class UtilisateurController extends Controller
             'role'         => $request->role,
             'statut'       => 'actif',
             'telephone'    => $request->telephone,
+            'civilite'     => $request->civilite,
         ]);
+
+        if ($classe) {
+            $classe->update(['enseignant_id' => $utilisateur->id]);
+        }
 
         return redirect('/admin/utilisateurs')->with('success', 'Utilisateur créé avec succès !');
     }

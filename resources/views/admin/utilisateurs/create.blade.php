@@ -23,6 +23,17 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
 
+                 <div style="margin-top: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Civilité</label>
+                    <select name="civilite"
+                        style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+                        <option value="">-- Choisir --</option>
+                        <option value="Monsieur" {{ old('civilite') == 'Monsieur' ? 'selected' : '' }}>Monsieur</option>
+                        <option value="Madame" {{ old('civilite') == 'Madame' ? 'selected' : '' }}>Madame</option>
+                        <option value="Mademoiselle" {{ old('civilite') == 'Mademoiselle' ? 'selected' : '' }}>Mademoiselle</option>
+                    </select>
+                </div>
+
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Nom</label>
                         <input type="text" name="nom" value="{{ old('nom') }}" required
@@ -62,6 +73,22 @@
                     </select>
                 </div>
 
+                                <div id="bloc-classe" style="margin-top: 20px; display: none;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Classe de l'enseignant</label>
+                    <select name="classe_id"
+                        style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;">
+                        <option value="">-- Choisir une classe --</option>
+                        @foreach($classesLibres as $classe)
+                            <option value="{{ $classe->id }}" {{ old('classe_id') == $classe->id ? 'selected' : '' }}>
+                                {{ $classe->nom }} {{ $classe->niveau ? '(' . $classe->niveau . ')' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @if($classesLibres->isEmpty())
+                        <p style="font-size: 12px; color: #c62828; margin-top: 6px;">Aucune classe libre pour l'année en cours : toutes ont déjà un enseignant, ou aucune classe n'est créée.</p>
+                    @endif
+                </div>
+
                 <div style="margin-top: 20px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Téléphone (optionnel)</label>
                     <input type="text" name="telephone" value="{{ old('telephone') }}"
@@ -82,5 +109,21 @@
             </form>
         </div>
     </div>
+
+    <script>
+const roleSelect = document.querySelector('select[name="role"]');
+const blocClasse = document.getElementById('bloc-classe');
+const selectClasse = blocClasse.querySelector('select');
+
+function majBlocClasse() {
+    const estEnseignant = roleSelect.value === 'enseignant';
+    blocClasse.style.display = estEnseignant ? '' : 'none';
+    selectClasse.disabled = !estEnseignant;
+    selectClasse.required = estEnseignant;
+}
+
+roleSelect.addEventListener('change', majBlocClasse);
+majBlocClasse();
+</script>
 
 @endsection
