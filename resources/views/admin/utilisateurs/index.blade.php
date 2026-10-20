@@ -50,6 +50,9 @@
                         </span>
                     </td>
                     <td style="padding: 14px 20px;">
+                        <a href="/admin/utilisateurs/{{ $u->id }}/edit" style="background: #1a73e8; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; margin-right: 4px;">
+                            Modifier
+                        </a>
                         <form method="POST" action="/admin/utilisateurs/{{ $u->id }}/statut" style="display: inline;">
                             @csrf
                             <button type="submit" style="background: #fbbc04; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">

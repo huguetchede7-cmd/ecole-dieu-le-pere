@@ -75,6 +75,64 @@ class UtilisateurController extends Controller
         return redirect('/admin/utilisateurs')->with('success', 'Utilisateur créé avec succès !');
     }
 
+        // Formulaire de modification
+    public function edit($id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        $ordre = ['Maternelle 1', 'Maternelle 2', 'CI', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'];
+
+        // Sa classe actuelle + les classes libres de l'année en cours
+        $classesDispo = Classe::where(function ($q) use ($utilisateur) {
+                $q->where(function ($q2) {
+                    $q2->whereNull('enseignant_id')
+                       ->where('annee_scolaire', Parametre::anneeCourante());
+                })->orWhere('enseignant_id', $utilisateur->id);
+            })
+            ->get()
+            ->sortBy(fn($c) => [array_search($c->niveau, $ordre), $c->nom])
+            ->values();
+
+        $classeActuelle = Classe::where('enseignant_id', $utilisateur->id)->first();
+
+        return view('admin.utilisateurs.edit', compact('utilisateur', 'classesDispo', 'classeActuelle'));
+    }
+
+    // Enregistrer la modification
+    public function update(Request $request, $id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        $estEnseignant = $utilisateur->role === 'enseignant';
+
+        $request->validate([
+            'civilite'  => 'nullable|in:Monsieur,Madame,Mademoiselle',
+            'nom'       => 'required|string|max:100',
+            'prenom'    => 'required|string|max:100',
+            'telephone' => 'nullable|string|max:20',
+            'classe_id' => $estEnseignant ? 'required|exists:classes,id' : 'nullable',
+        ], [
+            'classe_id.required' => 'Choisissez la classe de cet enseignant.',
+        ]);
+
+        if ($estEnseignant) {
+            $classe = Classe::findOrFail($request->classe_id);
+
+            // La classe doit être libre, ou déjà la sienne
+            if ($classe->enseignant_id && $classe->enseignant_id != $utilisateur->id) {
+                return back()->withErrors(['classe_id' => 'Cette classe a déjà un enseignant.'])->withInput();
+            }
+        }
+
+        $utilisateur->update($request->only(['civilite', 'nom', 'prenom', 'telephone']));
+
+        if ($estEnseignant) {
+            // Une seule classe par enseignant : on libère l'ancienne, puis on assigne la nouvelle
+            Classe::where('enseignant_id', $utilisateur->id)->update(['enseignant_id' => null]);
+            $classe->update(['enseignant_id' => $utilisateur->id]);
+        }
+
+        return redirect('/admin/utilisateurs')->with('success', 'Utilisateur modifié avec succès !');
+    }
+
     // Changer le statut actif/inactif
     public function toggleStatut($id)
     {
