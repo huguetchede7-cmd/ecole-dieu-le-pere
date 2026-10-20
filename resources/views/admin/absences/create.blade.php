@@ -18,16 +18,28 @@
 <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-    <div>
+        <div>
         <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">Classe</label>
-        <select id="classe_id" style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-            <option value="">-- Choisir --</option>
-            @foreach($classes as $classe)
-            <option value="{{ $classe->id }}">
-                {{ $classe->nom }} {{ $classe->niveau ? '(' . $classe->niveau . ')' : '' }}
-            </option>
-            @endforeach
-        </select>
+        @if(session('utilisateur_role') === 'enseignant')
+            @if($classes->first())
+                <input type="hidden" id="classe_id" value="{{ $classes->first()->id }}">
+                <div style="padding: 10px 14px; background: #f1f3f4; border-radius: 8px; font-size: 14px; font-weight: 600; color: #333;">
+                    {{ $classes->first()->nom }} {{ $classes->first()->niveau ? '(' . $classes->first()->niveau . ')' : '' }}
+                </div>
+            @else
+                <input type="hidden" id="classe_id" value="">
+                <div style="padding: 10px 14px; background: #fdecea; border-radius: 8px; font-size: 14px; color: #c62828;">Aucune classe ne vous est affectée.</div>
+            @endif
+        @else
+            <select id="classe_id" style="width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                <option value="">-- Choisir --</option>
+                @foreach($classes as $classe)
+                <option value="{{ $classe->id }}">
+                    {{ $classe->nom }} {{ $classe->niveau ? '(' . $classe->niveau . ')' : '' }}
+                </option>
+                @endforeach
+            </select>
+        @endif
     </div>
 
     <div>
@@ -126,5 +138,9 @@ function chargerEleves() {
         });
 }
 </script>
+
+@if(session('utilisateur_role') === 'enseignant' && $classes->first())
+<script>chargerEleves();</script>
+@endif
 
 @endsection

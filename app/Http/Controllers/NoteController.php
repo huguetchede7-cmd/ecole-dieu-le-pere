@@ -11,9 +11,58 @@ use App\Models\Classe;
 
 class NoteController extends Controller
   {
+        private function estEnseignant(): bool
+    {
+        return session('utilisateur_role') === 'enseignant';
+    }
+
+    private function classeEnseignant()
+    {
+        return Classe::where('enseignant_id', session('utilisateur_id'))->first();
+    }
+
+    private function classesAutorisees()
+    {
+        if ($this->estEnseignant()) {
+            return Classe::where('enseignant_id', session('utilisateur_id'))->get();
+        }
+        return Classe::orderBy('niveau')->orderBy('nom')->get();
+    }
+
+    private function verifierClasse($classeId): void
+    {
+        if (!$this->estEnseignant()) return;
+
+        $classe = $this->classeEnseignant();
+        abort_unless($classe && $classe->id == $classeId, 403, "Cette classe n'est pas la vôtre.");
+    }
+
+    // IDs des élèves autorisés (null = tous, pour les autres rôles)
+    private function elevesAutorises(): ?array
+    {
+        if (!$this->estEnseignant()) return null;
+
+        $classe = $this->classeEnseignant();
+        if (!$classe) return [];
+
+        return Inscription::where('classe_id', $classe->id)
+            ->where('statut', 'actif')
+            ->pluck('eleve_id')
+            ->all();
+    }
+
+    private function verifierEleve($eleveId): void
+    {
+        $autorises = $this->elevesAutorises();
+        abort_unless($autorises === null || in_array($eleveId, $autorises), 403, "Cet élève n'est pas dans votre classe.");
+    }
+
     public function index()
 {
+    $autorises = $this->elevesAutorises();
+
     $eleves = Note::with('eleve')
+        ->when($autorises !== null, fn($q) => $q->whereIn('eleve_id', $autorises))
         ->get()
         ->groupBy('eleve_id')
         ->map(function ($notes) {
@@ -36,13 +85,14 @@ class NoteController extends Controller
 
     public function create()
 {
-    $classes = Classe::orderBy('niveau')->orderBy('nom')->get();
+    $classes = $this->classesAutorisees();
     $matieres = Matiere::orderBy('nom')->get();
     return view('admin.notes.create', compact('classes', 'matieres'));
 }
 
 public function elevesParClasse($classeId)
 {
+        $this->verifierClasse($classeId);
     $inscriptions = Inscription::where('classe_id', $classeId)
         ->where('statut', 'actif')
         ->with('eleve')
@@ -62,6 +112,7 @@ public function elevesParClasse($classeId)
 
 public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
 {
+        $this->verifierClasse($classeId);
     $inscriptions = Inscription::where('classe_id', $classeId)
         ->where('statut', 'actif')
         ->with('eleve')
@@ -102,6 +153,10 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
         'notes.*.note_max' => 'nullable|numeric|min:1',
     ]);
 
+        foreach ($request->notes as $ligne) {
+        $this->verifierEleve($ligne['eleve_id']);
+    }
+
     foreach ($request->notes as $ligne) {
         if (!isset($ligne['note']) || $ligne['note'] === '' || $ligne['note'] === null) {
             continue;
@@ -124,10 +179,13 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
 
     return redirect('/admin/notes')->with('success', 'Notes enregistrées avec succès !');
 }
-    public function edit($id)
+        public function edit($id)
     {
-        $note     = Note::findOrFail($id);
-        $eleves   = Eleve::orderBy('nom')->get();
+        $note = Note::findOrFail($id);
+        $this->verifierEleve($note->eleve_id);
+
+        $autorises = $this->elevesAutorises();
+        $eleves   = Eleve::when($autorises !== null, fn($q) => $q->whereIn('id', $autorises))->orderBy('nom')->get();
         $matieres = Matiere::orderBy('nom')->get();
         return view('admin.notes.edit', compact('note', 'eleves', 'matieres'));
     }
@@ -144,7 +202,11 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
             'observation'    => 'nullable|string|max:255',
         ]);
 
-        Note::findOrFail($id)->update($request->only([
+        $note = Note::findOrFail($id);
+        $this->verifierEleve($note->eleve_id);
+        $this->verifierEleve($request->eleve_id);
+
+        $note->update($request->only([
             'eleve_id', 'matiere_id', 'note', 'note_max',
             'periode', 'annee_scolaire', 'observation',
         ]));
@@ -154,12 +216,17 @@ public function elevesAvecNotes($classeId, $matiereId, $periode, $annee)
 
     public function destroy($id)
     {
-        Note::findOrFail($id)->delete();
+        $note = Note::findOrFail($id);
+        $this->verifierEleve($note->eleve_id);
+        $note->delete();
+
         return redirect('/admin/notes')->with('success', 'Note supprimée !');
     }
     
    public function bulletin($eleveId, $anneeScolaire)
 {
+    $this->verifierEleve($eleveId);
+
     $eleve = Eleve::findOrFail($eleveId);
 
     $inscription = \App\Models\Inscription::where('eleve_id', $eleveId)
