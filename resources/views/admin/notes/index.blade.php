@@ -18,6 +18,25 @@
     </a>
 </div>
 
+@if($corrections->count())
+<div style="background:#fff4e5; border-radius:12px; padding:18px 22px; margin-bottom:24px;">
+    <h3 style="font-size:15px; color:#e65100; margin-bottom:10px;">
+        ✏️ {{ session('utilisateur_role') === 'enseignant' ? 'Corrections apportées à vos notes' : 'Dernières corrections de notes' }}
+    </h3>
+    @foreach($corrections as $c)
+    <div style="font-size:13px; color:#555; margin-top:6px;">
+        <strong>{{ $c->note->eleve->nom }} {{ $c->note->eleve->prenom }}</strong>
+        · {{ $c->note->matiere->nom ?? '' }} ({{ $c->note->periode }}) :
+        {{ (float) $c->ancienne_note }}/{{ (float) $c->ancienne_note_max }}
+        → <strong>{{ (float) $c->nouvelle_note }}/{{ (float) $c->nouvelle_note_max }}</strong>
+        · par {{ $c->auteur ? ucfirst($c->auteur->role) . ' ' . $c->auteur->nom : 'utilisateur supprimé' }}
+        · le {{ $c->created_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}
+        @if($c->motif) · <em>« {{ $c->motif }} »</em> @endif
+    </div>
+    @endforeach
+</div>
+@endif
+
 <div style="background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">
 <table style="width:100%; border-collapse:collapse;">
     <thead>
@@ -37,7 +56,7 @@
             <td style="padding:14px 20px; font-size:14px; color:#555;">{{ $eleve['nb_notes'] }}</td>
             <td style="padding:14px 20px; font-size:14px; color:#555;">{{ $eleve['derniere_annee'] }}</td>
             <td style="padding:14px 20px;">
-                <a href="{{ route('admin.notes.bulletin', ['eleve' => $eleve['id'], 'annee_scolaire' => $eleve['derniere_annee']]) }}"
+                <a href="{{ route('admin.notes.eleve', ['eleve' => $eleve['id'], 'annee_scolaire' => $eleve['derniere_annee']]) }}"
                     style="background:#1a73e8; color:white; padding:6px 14px; border-radius:6px; font-size:12px; text-decoration:none; font-weight:600;">
                     Voir ses notes
                 </a>

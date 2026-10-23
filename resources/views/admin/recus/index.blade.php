@@ -47,6 +47,7 @@
                         style="background: #1a73e8; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; margin-right: 4px;">
                         Voir
                     </a>
+                    @if(session('utilisateur_role') !== 'directeur')
                     <form method="POST" action="/admin/recus/{{ $recu->id }}" style="display: inline;">
                         @csrf
                         @method('DELETE')
@@ -55,6 +56,7 @@
                             Supprimer
                         </button>
                     </form>
+                    @endif
                 </td>
             </tr>
             @empty

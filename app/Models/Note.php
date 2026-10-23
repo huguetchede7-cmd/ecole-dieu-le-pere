@@ -33,4 +33,10 @@ class Note extends Model
     {
         return $this->belongsTo(Utilisateur::class, 'enseignant_id');
     }
+
+        public function corrections()
+    {
+        return $this->hasMany(NoteCorrection::class)->latest();
+    }
+
 }

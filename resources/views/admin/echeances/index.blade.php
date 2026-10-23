@@ -39,11 +39,13 @@
             <td style="padding:14px 20px;">
                 <div style="display:flex; gap:6px;">
                     <a href="{{ route('admin.echeances.edit', $echeance->id) }}" style="background:#1a73e8; color:white; padding:6px 12px; border-radius:6px; font-size:12px; text-decoration:none; font-weight:600;">Modifier</a>
+                   @if(session('utilisateur_role') !== 'directeur')
                     <form method="POST" action="{{ route('admin.echeances.destroy', $echeance->id) }}" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" onclick="return confirm('Supprimer cette échéance ?')" style="background:#ea4335; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600;">Supprimer</button>
                     </form>
+                     @endif
                 </div>
             </td>
         </tr>

@@ -23,7 +23,13 @@ class DashboardController extends Controller
             $nbEleves = $classe
                 ? Inscription::where('classe_id', $classe->id)->where('statut', 'actif')->count()
                 : 0;
-            return view('admin.dashboard-enseignant', compact('classe', 'nbEleves'));
+            $moi = session('utilisateur_id');
+            $nbCorrections = \App\Models\NoteCorrection::whereHas('note', fn($q) => $q->where('enseignant_id', $moi))
+                ->where(fn($q) => $q->whereNull('modifie_par')->orWhere('modifie_par', '!=', $moi))
+                ->where('created_at', '>=', now()->subDays(30))
+                ->count();
+
+            return view('admin.dashboard-enseignant', compact('classe', 'nbEleves', 'nbCorrections'));
         }
 
         if ($role === 'secretaire') {

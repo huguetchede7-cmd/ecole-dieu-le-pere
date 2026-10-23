@@ -18,6 +18,11 @@ class CheckRole
             return abort(403, 'Accès non autorisé.');
         }
 
+                // Le directeur peut consulter et modifier, mais jamais supprimer
+        if (session('utilisateur_role') === 'directeur' && $request->isMethod('DELETE')) {
+            return abort(403, 'Le directeur ne peut pas supprimer.');
+        }
+
         return $next($request);
     }
 }

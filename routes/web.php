@@ -82,10 +82,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('absences', AbsenceController::class);
     });
 
-    // --- Notes et bulletins : admin, directeur, enseignant ---
+        // --- Notes et bulletins : admin, directeur, enseignant ---
     Route::middleware('auth.role:admin,directeur,enseignant')->group(function () {
         Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');
         Route::get('notes/bulletin/{eleve}/{annee_scolaire}', [NoteController::class, 'bulletin'])->name('notes.bulletin');
+        Route::get('notes/eleve/{eleve}/{annee_scolaire}', [NoteController::class, 'notesEleve'])->name('notes.eleve');
         Route::resource('notes', NoteController::class);
     });
 

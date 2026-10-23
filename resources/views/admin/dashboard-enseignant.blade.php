@@ -7,6 +7,12 @@
 
 @include('partials.salutation')
 
+@if(($nbCorrections ?? 0) > 0)
+<a href="/admin/notes" style="display:block; background:#fff4e5; color:#e65100; border-radius:12px; padding:16px 20px; margin-bottom:20px; text-decoration:none; font-size:14px; font-weight:600;">
+    ✏️ {{ $nbCorrections }} de vos notes {{ $nbCorrections > 1 ? 'ont été corrigées' : 'a été corrigée' }} ces 30 derniers jours. Voir les corrections →
+</a>
+@endif
+
 @if($classe)
 <div style="background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:20px;">
     <h3 style="font-size:16px; color:#333; margin-bottom:10px;">🏫 Votre classe</h3>
