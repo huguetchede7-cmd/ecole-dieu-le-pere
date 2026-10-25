@@ -7,10 +7,34 @@
 
 @include('partials.salutation')
 
-@if(($nbCorrections ?? 0) > 0)
-<a href="/admin/notes" style="display:block; background:#fff4e5; color:#e65100; border-radius:12px; padding:16px 20px; margin-bottom:20px; text-decoration:none; font-size:14px; font-weight:600;">
-    ✏️ {{ $nbCorrections }} de vos notes {{ $nbCorrections > 1 ? 'ont été corrigées' : 'a été corrigée' }} ces 30 derniers jours. Voir les corrections →
-</a>
+@if($correctionsEnAttente->count() > 0)
+<div style="background:#fff4e5; border-radius:12px; padding:20px 24px; margin-bottom:20px; border-left:4px solid #e65100;">
+    <h3 style="font-size:16px; color:#e65100; margin-bottom:10px;">
+        ✏️ {{ $correctionsEnAttente->count() }} correction{{ $correctionsEnAttente->count() > 1 ? 's' : '' }} de notes en attente de votre validation
+    </h3>
+
+    @foreach($correctionsEnAttente->take(5) as $c)
+    <div style="font-size:14px; color:#555; margin-top:8px; line-height:1.7;">
+        <strong>{{ $c->note->eleve->nom }} {{ $c->note->eleve->prenom }}</strong>
+        · {{ $c->note->matiere->nom ?? '' }} ({{ $c->note->periode }}) :
+        {{ (float) $c->ancienne_note }}/{{ (float) $c->ancienne_note_max }}
+        → <strong>{{ (float) $c->nouvelle_note }}/{{ (float) $c->nouvelle_note_max }}</strong><br>
+        <span style="font-size:13px; color:#777;">
+            Proposé par {{ $c->auteur ? ucfirst($c->auteur->role) . ' ' . $c->auteur->nom : 'utilisateur supprimé' }}
+            le {{ $c->created_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}
+            @if($c->motif) · motif : <em>« {{ $c->motif }} »</em> @endif
+        </span>
+    </div>
+    @endforeach
+
+    @if($correctionsEnAttente->count() > 5)
+        <div style="font-size:13px; color:#777; margin-top:8px;">… et {{ $correctionsEnAttente->count() - 5 }} autre(s).</div>
+    @endif
+
+    <a href="/admin/notes/corrections" style="display:inline-block; margin-top:14px; background:#e65100; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600;">
+        Examiner et valider →
+    </a>
+</div>
 @endif
 
 @if($classe)

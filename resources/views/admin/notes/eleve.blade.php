@@ -37,8 +37,11 @@
             <td style="padding:14px 20px; font-size:14px; color:#555;">{{ $n->periode }}</td>
             <td style="padding:14px 20px; font-size:14px; color:#333; font-weight:600;">
                 {{ (float) $n->note }}/{{ (float) $n->note_max }}
-                @if($n->corrections->count())
-                    <span style="background:#fff4e5; color:#e65100; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; margin-left:6px;">Corrigée</span>
+                @if($n->corrections->where('statut', 'validee')->count())
+                    <span style="background:#e6f4ea; color:#2e7d32; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; margin-left:6px;">Corrigée</span>
+                @endif
+                @if($n->corrections->where('statut', 'en_attente')->count())
+                    <span style="background:#fff4e5; color:#e65100; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; margin-left:6px;">Correction en attente</span>
                 @endif
             </td>
             <td style="padding:14px 20px; font-size:14px; color:#555;">{{ $n->enseignant->nom ?? '-' }}</td>
@@ -56,6 +59,14 @@
                     · par {{ $c->auteur ? ucfirst($c->auteur->role) . ' ' . $c->auteur->nom : 'utilisateur supprimé' }}
                     · le {{ $c->created_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}
                     @if($c->motif) · <em>« {{ $c->motif }} »</em> @endif
+                    ·
+                    @if($c->statut === 'en_attente')
+                        <span style="color:#e65100; font-weight:600;">En attente de validation</span>
+                    @elseif($c->statut === 'refusee')
+                        <span style="color:#c62828; font-weight:600;">Refusée{{ $c->motif_refus ? ' : ' . $c->motif_refus : '' }}</span>
+                    @else
+                        <span style="color:#2e7d32; font-weight:600;">Confirmée</span>
+                    @endif
                 </div>
                 @endforeach
             </td>

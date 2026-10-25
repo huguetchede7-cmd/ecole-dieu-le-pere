@@ -24,15 +24,14 @@ class DashboardController extends Controller
                 ? Inscription::where('classe_id', $classe->id)->where('statut', 'actif')->count()
                 : 0;
             $moi = session('utilisateur_id');
-            $nbCorrections = \App\Models\NoteCorrection::whereHas('note', fn($q) => $q->where('enseignant_id', $moi))
-                ->where(fn($q) => $q->whereNull('modifie_par')->orWhere('modifie_par', '!=', $moi))
-                ->where('created_at', '>=', now()->subDays(30))
-                ->count();
+                        $correctionsEnAttente = \App\Models\NoteCorrection::with(['note.eleve', 'note.matiere', 'auteur'])
+                ->where('statut', 'en_attente')
+                ->where('validateur_id', session('utilisateur_id'))
+                ->oldest()
+                ->get()
+                ->filter(fn($c) => $c->note && $c->note->eleve);
 
-            return view('admin.dashboard-enseignant', compact('classe', 'nbEleves', 'nbCorrections'));
-        }
-
-        if ($role === 'secretaire') {
+            return view('admin.dashboard-enseignant', compact('classe', 'nbEleves', 'correctionsEnAttente'));
             return view('admin.dashboard-secretaire');
         }
     $anneeScolaire = $request->query('annee_scolaire', \App\Models\Parametre::anneeCourante());

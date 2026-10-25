@@ -11,6 +11,12 @@
 </div>
 @endif
 
+@if(session('erreur'))
+<div style="background:#fdecea; color:#c62828; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
+❌ {{ session('erreur') }}
+</div>
+@endif
+
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
     <h2 style="font-size:16px; color:#333;">Élèves notés</h2>
     <a href="{{ route('admin.notes.create') }}" style="background:#1a73e8; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600;">
@@ -18,23 +24,12 @@
     </a>
 </div>
 
-@if($corrections->count())
-<div style="background:#fff4e5; border-radius:12px; padding:18px 22px; margin-bottom:24px;">
-    <h3 style="font-size:15px; color:#e65100; margin-bottom:10px;">
-        ✏️ {{ session('utilisateur_role') === 'enseignant' ? 'Corrections apportées à vos notes' : 'Dernières corrections de notes' }}
-    </h3>
-    @foreach($corrections as $c)
-    <div style="font-size:13px; color:#555; margin-top:6px;">
-        <strong>{{ $c->note->eleve->nom }} {{ $c->note->eleve->prenom }}</strong>
-        · {{ $c->note->matiere->nom ?? '' }} ({{ $c->note->periode }}) :
-        {{ (float) $c->ancienne_note }}/{{ (float) $c->ancienne_note_max }}
-        → <strong>{{ (float) $c->nouvelle_note }}/{{ (float) $c->nouvelle_note_max }}</strong>
-        · par {{ $c->auteur ? ucfirst($c->auteur->role) . ' ' . $c->auteur->nom : 'utilisateur supprimé' }}
-        · le {{ $c->created_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}
-        @if($c->motif) · <em>« {{ $c->motif }} »</em> @endif
-    </div>
-    @endforeach
-</div>
+@if($nbEnAttente > 0)
+<a href="/admin/notes/corrections" style="display:block; background:#fff4e5; color:#e65100; border-radius:12px; padding:16px 20px; margin-bottom:24px; text-decoration:none; font-size:14px; font-weight:600;">
+    ✏️ {{ $nbEnAttente }} correction{{ $nbEnAttente > 1 ? 's' : '' }} de notes en attente
+    {{ session('utilisateur_role') === 'enseignant' ? 'de votre validation' : 'de validation par l\'enseignant' }}
+    → Voir
+</a>
 @endif
 
 <div style="background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">

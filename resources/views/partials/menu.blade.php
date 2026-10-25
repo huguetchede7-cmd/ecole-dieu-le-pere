@@ -56,6 +56,9 @@
 
 @if($peut('admin', 'directeur', 'enseignant'))
 <a href="/admin/notes" class="menu-item {{ request()->is('admin/notes*') ? 'active' : '' }}"><span>📝</span> Évaluations, résultats et bulletins</a>
+
+<a href="/admin/notes/corrections" class="menu-item {{ request()->is('admin/notes/corrections*') ? 'active' : '' }}"><span>✏️</span> Corrections de notes</a>
+
 @endif
 @endif
 

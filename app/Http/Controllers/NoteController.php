@@ -9,6 +9,7 @@ use App\Models\Matiere;
 use App\Models\Inscription;
 use App\Models\Classe;
 use App\Models\NoteCorrection;
+use App\Models\Utilisateur;
 
 class NoteController extends Controller
 {
@@ -60,24 +61,89 @@ class NoteController extends Controller
         abort_unless($autorises === null || in_array($eleveId, $autorises), 403, "Cet élève n'est pas dans votre classe.");
     }
 
-    // ---------- Historique des corrections ----------
+    // ---------- Corrections de notes (avec validation par l'enseignant) ----------
 
-    // Garde une trace si la note ou le barème a changé
-    private function enregistrerCorrection(Note $note, $nouvelleNote, $nouvelleMax, $motif = null): void
+    // Nombre maximum de corrections appliquées pour une même note
+    private const MAX_CORRECTIONS = 2;
+
+    // Qui doit valider une correction : l'enseignant qui a saisi la note,
+    // sinon l'enseignant actuel de la classe de l'élève (note saisie par l'admin)
+    private function validateurPour(Note $note): ?int
     {
-        if ((float) $note->note === (float) $nouvelleNote && (float) $note->note_max === (float) $nouvelleMax) {
-            return;
+        $proprietaire = $note->enseignant_id ? Utilisateur::find($note->enseignant_id) : null;
+        if ($proprietaire && $proprietaire->role === 'enseignant') {
+            return $proprietaire->id;
         }
 
-        NoteCorrection::create([
+        $inscription = Inscription::where('eleve_id', $note->eleve_id)
+            ->where('annee_scolaire', $note->annee_scolaire)
+            ->with('classe')
+            ->first();
+
+        return $inscription->classe->enseignant_id ?? null;
+    }
+
+    // Modifie une note (enseignant : direct) ou propose une correction (directeur/admin : validation requise).
+    // Retourne ['ok' => bool, 'applique' => bool, 'message' => string]
+    private function modifierNote(Note $note, $nouvelleNote, $nouvelleMax, $motif = null): array
+    {
+        if ((float) $note->note === (float) $nouvelleNote && (float) $note->note_max === (float) $nouvelleMax) {
+            return ['ok' => true, 'applique' => true, 'message' => 'Aucun changement de note.'];
+        }
+
+        $appliquees = NoteCorrection::where('note_id', $note->id)->where('statut', 'validee')->count();
+        if ($appliquees >= self::MAX_CORRECTIONS) {
+            return [
+                'ok' => false,
+                'applique' => false,
+                'message' => 'Cette note a déjà été corrigée ' . self::MAX_CORRECTIONS . ' fois : plus aucune modification n\'est possible.',
+            ];
+        }
+
+        if (NoteCorrection::where('note_id', $note->id)->where('statut', 'en_attente')->exists()) {
+            return [
+                'ok' => false,
+                'applique' => false,
+                'message' => 'Une correction est déjà en attente de validation pour cette note.',
+            ];
+        }
+
+        $moi = session('utilisateur_id');
+        $validateur = $this->estEnseignant() ? $moi : $this->validateurPour($note);
+
+        $donnees = [
             'note_id'           => $note->id,
             'ancienne_note'     => $note->note,
             'ancienne_note_max' => $note->note_max,
             'nouvelle_note'     => $nouvelleNote,
             'nouvelle_note_max' => $nouvelleMax,
             'motif'             => $motif,
-            'modifie_par'       => session('utilisateur_id'),
+            'modifie_par'       => $moi,
+        ];
+
+        // L'enseignant modifie directement ; sans enseignant à consulter, la correction est aussi directe
+        if ($this->estEnseignant() || $validateur === null) {
+            NoteCorrection::create($donnees + [
+                'statut'        => 'validee',
+                'validateur_id' => $validateur ?? $moi,
+                'decide_le'     => now(),
+            ]);
+            $note->update(['note' => $nouvelleNote, 'note_max' => $nouvelleMax]);
+
+            return ['ok' => true, 'applique' => true, 'message' => 'Note corrigée avec succès !'];
+        }
+
+        // Directeur / admin : la note ne change pas tant que l'enseignant n'a pas confirmé
+        NoteCorrection::create($donnees + [
+            'statut'        => 'en_attente',
+            'validateur_id' => $validateur,
         ]);
+
+        return [
+            'ok' => true,
+            'applique' => false,
+            'message' => "Correction envoyée à l'enseignant pour validation. La note actuelle reste inchangée jusqu'à sa confirmation.",
+        ];
     }
 
     // ---------- Pages ----------
@@ -105,21 +171,98 @@ class NoteController extends Controller
             ->sortBy('nom')
             ->values();
 
-        // Corrections récentes : pour l'enseignant, celles faites par d'autres sur SES notes
-        $moi = session('utilisateur_id');
-        $corrections = NoteCorrection::with(['note.eleve', 'note.matiere', 'auteur'])
-            ->when($this->estEnseignant(), function ($q) use ($moi) {
-                $q->whereHas('note', fn($n) => $n->where('enseignant_id', $moi))
-                  ->where(fn($c) => $c->whereNull('modifie_par')->orWhere('modifie_par', '!=', $moi));
-            })
-            ->latest()
-            ->limit(20)
-            ->get()
-            ->filter(fn($c) => $c->note && $c->note->eleve);
+        // Corrections en attente (pour l'enseignant : celles qu'il doit valider)
+        $nbEnAttente = NoteCorrection::where('statut', 'en_attente')
+            ->when($this->estEnseignant(), fn($q) => $q->where('validateur_id', session('utilisateur_id')))
+            ->count();
 
-        return view('admin.notes.index', compact('eleves', 'corrections'));
+        return view('admin.notes.index', compact('eleves', 'nbEnAttente'));
     }
 
+        // Page des corrections : à valider (enseignant) ou suivi (directeur, admin)
+    public function corrections()
+    {
+        $moi = session('utilisateur_id');
+
+        $base = NoteCorrection::with(['note.eleve', 'note.matiere', 'auteur', 'validateur'])
+            ->when($this->estEnseignant(), function ($q) use ($moi) {
+                $q->where('validateur_id', $moi)
+                  ->where(fn($c) => $c->whereNull('modifie_par')->orWhere('modifie_par', '!=', $moi));
+            });
+
+        $enAttente = (clone $base)->where('statut', 'en_attente')->oldest()->get()
+            ->filter(fn($c) => $c->note && $c->note->eleve);
+
+        $traitees = (clone $base)->whereIn('statut', ['validee', 'refusee'])->latest()->limit(30)->get()
+            ->filter(fn($c) => $c->note && $c->note->eleve);
+
+        return view('admin.notes.corrections', compact('enAttente', 'traitees'));
+    }
+
+    // Seul l'enseignant désigné peut traiter une correction en attente
+    private function correctionPourValidation($id): NoteCorrection
+    {
+        $correction = NoteCorrection::with('note')->findOrFail($id);
+
+        abort_unless(
+            $this->estEnseignant()
+                && $correction->validateur_id == session('utilisateur_id')
+                && $correction->statut === 'en_attente'
+                && $correction->note,
+            403,
+            'Vous ne pouvez pas traiter cette correction.'
+        );
+
+        return $correction;
+    }
+
+    public function confirmerCorrection($id)
+    {
+        $correction = $this->correctionPourValidation($id);
+        $note = $correction->note;
+
+        $appliquees = NoteCorrection::where('note_id', $note->id)->where('statut', 'validee')->count();
+        if ($appliquees >= self::MAX_CORRECTIONS) {
+            return back()->with('erreur', 'Cette note a déjà été corrigée ' . self::MAX_CORRECTIONS . ' fois : confirmation impossible.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($note, $correction) {
+            // La nouvelle note devient la note officielle et est attribuée à l'enseignant qui confirme
+            $note->update([
+                'note'          => $correction->nouvelle_note,
+                'note_max'      => $correction->nouvelle_note_max,
+                'enseignant_id' => session('utilisateur_id'),
+            ]);
+
+            $correction->update([
+                'statut'    => 'validee',
+                'decide_le' => now(),
+            ]);
+        });
+
+        return redirect('/admin/notes/corrections')
+            ->with('success', 'Correction confirmée : la nouvelle note est maintenant la note officielle.');
+    }
+
+    public function refuserCorrection(Request $request, $id)
+    {
+        $request->validate(
+            ['motif_refus' => 'required|string|max:255'],
+            ['motif_refus.required' => 'Indiquez la raison du refus.']
+        );
+
+        $correction = $this->correctionPourValidation($id);
+
+        $correction->update([
+            'statut'      => 'refusee',
+            'decide_le'   => now(),
+            'motif_refus' => $request->motif_refus,
+        ]);
+
+        return redirect('/admin/notes/corrections')
+            ->with('success', 'Correction refusée : la note reste inchangée.');
+    }
+    
     // Toutes les notes d'un élève pour une année, avec l'historique des corrections
     public function notesEleve($eleveId, $annee)
     {
@@ -213,6 +356,8 @@ class NoteController extends Controller
             $this->verifierEleve($ligne['eleve_id']);
         }
 
+        $problemes = [];
+
         foreach ($request->notes as $ligne) {
             if (!isset($ligne['note']) || $ligne['note'] === '' || $ligne['note'] === null) {
                 continue;
@@ -227,19 +372,34 @@ class NoteController extends Controller
                 'annee_scolaire' => $request->annee_scolaire,
             ]);
 
-            if ($note->exists) {
-                // Note déjà saisie : on garde l'enseignant d'origine et on trace le changement
-                $this->enregistrerCorrection($note, $ligne['note'], $noteMax);
-            } else {
+            // Nouvelle note : enregistrement simple
+            if (!$note->exists) {
                 $note->enseignant_id = session('utilisateur_id');
+                $note->note = $ligne['note'];
+                $note->note_max = $noteMax;
+                $note->save();
+                continue;
             }
 
-            $note->note = $ligne['note'];
-            $note->note_max = $noteMax;
-            $note->save();
+            // Note déjà saisie : toute modification est encadrée
+            $nomEleve = optional(Eleve::find($ligne['eleve_id']))->nom;
+
+            if ($this->estEnseignant()) {
+                $res = $this->modifierNote($note, $ligne['note'], $noteMax);
+                if (!$res['ok']) {
+                    $problemes[] = $nomEleve . ' : ' . $res['message'];
+                }
+            } elseif ((float) $note->note !== (float) $ligne['note'] || (float) $note->note_max !== (float) $noteMax) {
+                $problemes[] = $nomEleve . " : note existante non modifiée (utilisez « Corriger », l'enseignant devra valider).";
+            }
         }
 
-        return redirect('/admin/notes')->with('success', 'Notes enregistrées avec succès !');
+        $redirection = redirect('/admin/notes')->with('success', 'Notes enregistrées avec succès !');
+        if ($problemes) {
+            $redirection->with('erreur', implode(' ', $problemes));
+        }
+
+        return $redirection;
     }
 
     public function edit($id)
@@ -256,21 +416,29 @@ class NoteController extends Controller
             'note'        => 'required|numeric|min:0',
             'note_max'    => 'required|numeric|min:1',
             'observation' => 'nullable|string|max:255',
-            'motif'       => 'nullable|string|max:255',
+            // Le directeur et l'admin doivent justifier leur proposition
+            'motif'       => ($this->estEnseignant() ? 'nullable' : 'required') . '|string|max:255',
+        ], [
+            'motif.required' => 'Le motif de la correction est obligatoire.',
         ]);
 
         $note = Note::findOrFail($id);
         $this->verifierEleve($note->eleve_id);
 
-        $this->enregistrerCorrection($note, $request->note, $request->note_max, $request->motif);
+        $res = $this->modifierNote($note, $request->note, $request->note_max, $request->motif);
 
-        // Seule la note, le barème et l'observation sont modifiables
-        $note->update($request->only(['note', 'note_max', 'observation']));
+        if (!$res['ok']) {
+            return back()->withErrors(['note' => $res['message']])->withInput();
+        }
+
+        if ($res['applique']) {
+            $note->update(['observation' => $request->observation]);
+        }
 
         return redirect()->route('admin.notes.eleve', [
             'eleve' => $note->eleve_id,
             'annee_scolaire' => $note->annee_scolaire,
-        ])->with('success', 'Note corrigée avec succès !');
+        ])->with('success', $res['message']);
     }
 
     public function destroy($id)

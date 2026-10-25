@@ -8,14 +8,22 @@ class NoteCorrection extends Model
 {
     protected $table = 'note_corrections';
 
-    protected $fillable = [
+        protected $fillable = [
         'note_id',
         'ancienne_note',
         'ancienne_note_max',
         'nouvelle_note',
         'nouvelle_note_max',
         'motif',
+        'statut',
+        'validateur_id',
+        'decide_le',
+        'motif_refus',
         'modifie_par',
+    ];
+
+        protected $casts = [
+        'decide_le' => 'datetime',
     ];
 
     public function note()
@@ -26,5 +34,10 @@ class NoteCorrection extends Model
     public function auteur()
     {
         return $this->belongsTo(Utilisateur::class, 'modifie_par');
+    }
+
+        public function validateur()
+    {
+        return $this->belongsTo(Utilisateur::class, 'validateur_id');
     }
 }

@@ -87,6 +87,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('notes/eleves-note/{classe}/{matiere}/{periode}/{annee}', [NoteController::class, 'elevesAvecNotes'])->name('notes.eleves-note');
         Route::get('notes/bulletin/{eleve}/{annee_scolaire}', [NoteController::class, 'bulletin'])->name('notes.bulletin');
         Route::get('notes/eleve/{eleve}/{annee_scolaire}', [NoteController::class, 'notesEleve'])->name('notes.eleve');
+        Route::get('notes/corrections', [NoteController::class, 'corrections'])->name('notes.corrections');
+        Route::post('notes/corrections/{correction}/confirmer', [NoteController::class, 'confirmerCorrection'])->name('notes.corrections.confirmer');
+        Route::post('notes/corrections/{correction}/refuser', [NoteController::class, 'refuserCorrection'])->name('notes.corrections.refuser');
         Route::resource('notes', NoteController::class);
     });
 
