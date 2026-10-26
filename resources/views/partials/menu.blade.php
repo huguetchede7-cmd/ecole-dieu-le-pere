@@ -59,6 +59,10 @@
 
 <a href="/admin/notes/corrections" class="menu-item {{ request()->is('admin/notes/corrections*') ? 'active' : '' }}"><span>✏️</span> Corrections de notes</a>
 
+@if($peut('admin', 'directeur'))
+<a href="/admin/examens" class="menu-item {{ request()->is('admin/examens*') ? 'active' : '' }}"><span>🗓️</span> Examens et compositions</a>
+@endif
+
 @endif
 @endif
 

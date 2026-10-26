@@ -244,6 +244,27 @@ class NoteController extends Controller
             ->with('success', 'Correction confirmée : la nouvelle note est maintenant la note officielle.');
     }
 
+        // Le directeur / l'admin marque une réponse comme consultée
+    public function marquerVue($id)
+    {
+        $correction = NoteCorrection::findOrFail($id);
+        abort_unless($correction->modifie_par == session('utilisateur_id'), 403);
+
+        $correction->update(['vue_par_auteur_le' => now()]);
+
+        return back();
+    }
+
+    public function marquerToutesVues()
+    {
+        NoteCorrection::where('modifie_par', session('utilisateur_id'))
+            ->whereIn('statut', ['validee', 'refusee'])
+            ->whereNull('vue_par_auteur_le')
+            ->update(['vue_par_auteur_le' => now()]);
+
+        return back();
+    }
+
     public function refuserCorrection(Request $request, $id)
     {
         $request->validate(

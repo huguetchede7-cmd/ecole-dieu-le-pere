@@ -20,10 +20,12 @@ class NoteCorrection extends Model
         'decide_le',
         'motif_refus',
         'modifie_par',
+        'vue_par_auteur_le',
     ];
 
         protected $casts = [
         'decide_le' => 'datetime',
+        'vue_par_auteur_le' => 'datetime',
     ];
 
     public function note()

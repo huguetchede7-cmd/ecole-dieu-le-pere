@@ -90,12 +90,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('notes/corrections', [NoteController::class, 'corrections'])->name('notes.corrections');
         Route::post('notes/corrections/{correction}/confirmer', [NoteController::class, 'confirmerCorrection'])->name('notes.corrections.confirmer');
         Route::post('notes/corrections/{correction}/refuser', [NoteController::class, 'refuserCorrection'])->name('notes.corrections.refuser');
+        Route::post('notes/corrections/vu-toutes', [NoteController::class, 'marquerToutesVues'])->name('notes.corrections.vu-toutes');
+        Route::post('notes/corrections/{correction}/vu', [NoteController::class, 'marquerVue'])->name('notes.corrections.vu');
         Route::resource('notes', NoteController::class);
     });
 
     // --- Plaintes : admin, directeur, secrétaire ---
     Route::middleware('auth.role:admin,directeur,secretaire')->group(function () {
         Route::resource('plaintes', PlainteController::class);
+    });
+
+        // --- Examens et compositions : admin, directeur ---
+    Route::middleware('auth.role:admin,directeur')->group(function () {
+        Route::resource('examens', \App\Http\Controllers\ExamenController::class)->except(['show']);
     });
 
     // --- Paramètres et utilisateurs : admin seulement ---
