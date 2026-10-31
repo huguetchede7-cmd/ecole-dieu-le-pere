@@ -32,6 +32,8 @@ class AuthController extends Controller
             ]);
         }
 
+        session()->regenerate();
+
         session([
             'utilisateur_id'   => $utilisateur->id,
             'utilisateur_nom'  => $utilisateur->nom,

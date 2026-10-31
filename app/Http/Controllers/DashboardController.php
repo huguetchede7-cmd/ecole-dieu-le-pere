@@ -32,7 +32,6 @@ class DashboardController extends Controller
                 ->filter(fn($c) => $c->note && $c->note->eleve);
 
             return view('admin.dashboard-enseignant', compact('classe', 'nbEleves', 'correctionsEnAttente'));
-            return view('admin.dashboard-secretaire');
         }
     $anneeScolaire = $request->query('annee_scolaire', \App\Models\Parametre::anneeCourante());
 

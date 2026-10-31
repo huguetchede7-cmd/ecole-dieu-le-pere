@@ -39,7 +39,7 @@ class UtilisateurController extends Controller
             'nom'          => 'required|string|max:100',
             'prenom'       => 'required|string|max:100',
             'email'        => 'required|email|unique:utilisateurs,email',
-            'mot_de_passe' => 'required|min:6',
+            'mot_de_passe' => 'required|min:8',
             'role'         => 'required|in:admin,directeur,enseignant,comptable,secretaire',
             'telephone'    => 'nullable|string|max:20',
             'classe_id'    => 'required_if:role,enseignant|nullable|exists:classes,id',
