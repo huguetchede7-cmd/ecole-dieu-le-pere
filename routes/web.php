@@ -105,6 +105,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('examens', \App\Http\Controllers\ExamenController::class)->except(['show']);
     });
 
+        // --- Dépôt des épreuves : l'enseignant dépose ---
+    Route::middleware('auth.role:enseignant')->group(function () {
+        Route::get('epreuves', [\App\Http\Controllers\EpreuveController::class, 'index'])->name('epreuves.index');
+        Route::post('epreuves', [\App\Http\Controllers\EpreuveController::class, 'store'])->name('epreuves.store');
+    });
+
+        // --- Suivi des épreuves : admin, directeur, secrétaire ---
+    Route::middleware('auth.role:admin,directeur,secretaire')->group(function () {
+        Route::get('suivi-epreuves', [\App\Http\Controllers\EpreuveController::class, 'suivi'])->name('epreuves.suivi');
+    });
+
+    // --- Télécharger une épreuve : admin, directeur, secrétaire, enseignant (sa classe seulement) ---
+    Route::middleware('auth.role:admin,directeur,secretaire,enseignant')->group(function () {
+        Route::get('epreuves/{epreuve}/telecharger', [\App\Http\Controllers\EpreuveController::class, 'telecharger'])->name('epreuves.telecharger');
+    });
+
     // --- Paramètres et utilisateurs : admin seulement ---
     Route::middleware('auth.role:admin')->group(function () {
         Route::get('parametres', [ParametreController::class, 'index'])->name('parametres.index');

@@ -63,7 +63,16 @@
 <a href="/admin/examens" class="menu-item {{ request()->is('admin/examens*') ? 'active' : '' }}"><span>🗓️</span> Examens et compositions</a>
 @endif
 
+@if($peut('enseignant'))
+<a href="/admin/epreuves" class="menu-item {{ request()->is('admin/epreuves*') ? 'active' : '' }}"><span>📄</span> Mes épreuves</a>
 @endif
+
+@endif
+
+@if($peut('admin', 'directeur', 'secretaire'))
+<a href="/admin/suivi-epreuves" class="menu-item {{ request()->is('admin/suivi-epreuves*') ? 'active' : '' }}"><span>📥</span> Suivi des épreuves</a>
+@endif
+
 @endif
 
 
