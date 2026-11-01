@@ -20,6 +20,7 @@ class ExamenController extends Controller
             'date_fin'          => 'required|date|after_or_equal:date_debut',
             'date_limite_notes' => 'required|date|after_or_equal:date_fin',
             'consignes'         => 'nullable|string|max:1000',
+            'date_ouverture_impression' => 'nullable|date|before_or_equal:date_debut',
         ];
     }
 
@@ -30,6 +31,7 @@ class ExamenController extends Controller
             'date_debut.after_or_equal'       => "La composition ne peut pas commencer avant la date limite de dépôt des épreuves.",
             'date_fin.after_or_equal'         => "La fin de la composition ne peut pas précéder son début.",
             'date_limite_notes.after_or_equal'=> "La date limite de saisie des notes doit être après la fin de la composition.",
+            'date_ouverture_impression.before_or_equal'=> "La date d'ouverture d'impression doit être avant ou égale à la date de début de la composition.",
         ];
     }
 

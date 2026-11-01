@@ -12,13 +12,61 @@ use App\Models\Parametre;
 
 class EpreuveController extends Controller
 {
+    // Formats acceptés : Word, PDF, images (photo d'un schéma dessiné à la main)
+    private const REGLE_FICHIER = 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240';
+
+    private function messagesFichier(): array
+    {
+        return [
+            'fichier.required' => 'Choisissez le fichier de l\'épreuve.',
+            'fichier.mimes'    => 'Le fichier doit être un PDF, un document Word (.doc, .docx) ou une image (.jpg, .png).',
+            'fichier.max'      => 'Le fichier ne doit pas dépasser 10 Mo.',
+        ];
+    }
+
     // La classe de l'enseignant connecté (une seule)
     private function classeDeLEnseignant()
     {
         return Classe::where('enseignant_id', session('utilisateur_id'))->first();
     }
 
-    // Page "Mes épreuves" : les sessions en cours et les matières de la classe
+    // Enregistre le fichier d'une épreuve (une épreuve par session, niveau et matière). Retourne true si dépôt en retard.
+    private function enregistrer(Examen $examen, string $niveau, Matiere $matiere, $fichier): bool
+    {
+        // Après la date limite : on accepte quand même, mais on note le retard
+        $enRetard = now('Africa/Porto-Novo')->toDateString() > $examen->date_limite_depot->toDateString();
+
+        // Si une épreuve existe déjà, on supprime l'ancien fichier (le nouveau le remplace)
+        $existante = Epreuve::where('examen_id', $examen->id)
+            ->where('niveau', $niveau)
+            ->where('matiere_id', $matiere->id)
+            ->first();
+
+        if ($existante) {
+            Storage::disk('local')->delete($existante->fichier);
+        }
+
+        // Le fichier est rangé dans un dossier privé (non accessible depuis l'extérieur)
+        $chemin = $fichier->store('epreuves', 'local');
+
+        Epreuve::updateOrCreate(
+            [
+                'examen_id'  => $examen->id,
+                'niveau'     => $niveau,
+                'matiere_id' => $matiere->id,
+            ],
+            [
+                'fichier'          => $chemin,
+                'nom_original'     => $fichier->getClientOriginalName(),
+                'depose_par'       => session('utilisateur_id'),
+                'depose_en_retard' => $enRetard,
+            ]
+        );
+
+        return $enRetard;
+    }
+
+    // Page "Mes épreuves" : les sessions en cours et les matières du niveau
     public function index()
     {
         $classe = $this->classeDeLEnseignant();
@@ -35,13 +83,22 @@ class EpreuveController extends Controller
             ? Matiere::where('niveau', $classe->niveau)->orderBy('nom')->get()
             : collect();
 
-        // Épreuves déjà déposées, retrouvables par "session-matière"
+        // Épreuves du niveau (communes à toutes les classes du niveau), retrouvables par "session-matière"
         $epreuves = $classe
-            ? Epreuve::where('classe_id', $classe->id)->get()
+            ? Epreuve::where('niveau', $classe->niveau)->with('auteur')->get()
                 ->keyBy(fn($e) => $e->examen_id . '-' . $e->matiere_id)
             : collect();
 
-        return view('admin.epreuves.index', compact('classe', 'examens', 'matieres', 'epreuves'));
+        // Les autres classes du même niveau (CI B pour CI A) : elles partagent la même épreuve
+        $autresClasses = $classe
+            ? Classe::where('annee_scolaire', $classe->annee_scolaire)
+                ->where('niveau', $classe->niveau)
+                ->where('id', '!=', $classe->id)
+                ->with('enseignant')
+                ->get()
+            : collect();
+
+        return view('admin.epreuves.index', compact('classe', 'examens', 'matieres', 'epreuves', 'autresClasses'));
     }
 
     // Enregistrer le fichier envoyé par l'enseignant
@@ -53,49 +110,16 @@ class EpreuveController extends Controller
         $request->validate([
             'examen_id'  => 'required|exists:examens,id',
             'matiere_id' => 'required|exists:matieres,id',
-            'fichier'    => 'required|file|mimes:pdf,doc,docx|max:10240',
-        ], [
-            'fichier.required' => 'Choisissez le fichier de l\'épreuve.',
-            'fichier.mimes'    => 'Le fichier doit être un PDF ou un document Word (.doc, .docx).',
-            'fichier.max'      => 'Le fichier ne doit pas dépasser 10 Mo.',
-        ]);
+            'fichier'    => self::REGLE_FICHIER,
+        ], $this->messagesFichier());
 
         $examen = Examen::findOrFail($request->examen_id);
         $matiere = Matiere::findOrFail($request->matiere_id);
 
-        // L'enseignant ne dépose que pour les matières de sa classe
+        // L'enseignant ne dépose que pour les matières de son niveau
         abort_unless($matiere->niveau === $classe->niveau, 403, "Cette matière n'appartient pas à votre classe.");
 
-        // Après la date limite : on accepte quand même, mais on note le retard
-        $enRetard = now('Africa/Porto-Novo')->toDateString() > $examen->date_limite_depot->toDateString();
-
-        // Si une épreuve existe déjà, on supprime l'ancien fichier (le nouveau le remplace)
-        $existante = Epreuve::where('examen_id', $examen->id)
-            ->where('classe_id', $classe->id)
-            ->where('matiere_id', $matiere->id)
-            ->first();
-
-        if ($existante) {
-            Storage::disk('local')->delete($existante->fichier);
-        }
-
-        // Le fichier est rangé dans un dossier privé (non accessible depuis l'extérieur)
-        $fichier = $request->file('fichier');
-        $chemin = $fichier->store('epreuves', 'local');
-
-        Epreuve::updateOrCreate(
-            [
-                'examen_id'  => $examen->id,
-                'classe_id'  => $classe->id,
-                'matiere_id' => $matiere->id,
-            ],
-            [
-                'fichier'          => $chemin,
-                'nom_original'     => $fichier->getClientOriginalName(),
-                'depose_par'       => session('utilisateur_id'),
-                'depose_en_retard' => $enRetard,
-            ]
-        );
+        $enRetard = $this->enregistrer($examen, $classe->niveau, $matiere, $request->file('fichier'));
 
         $message = 'Épreuve de ' . $matiere->nom . ' déposée avec succès !';
         if ($enRetard) {
@@ -105,7 +129,7 @@ class EpreuveController extends Controller
         return redirect('/admin/epreuves')->with('success', $message);
     }
 
-        // Suivi des épreuves : qui a déposé, qui n'a pas encore déposé (admin, directeur, secrétaire)
+    // Suivi des épreuves : qui a déposé, qui n'a pas encore déposé (admin, directeur, secrétaire)
     public function suivi(Request $request)
     {
         $annee = Parametre::anneeCourante();
@@ -119,38 +143,84 @@ class EpreuveController extends Controller
             ? $examens->firstWhere('id', (int) $request->query('examen_id'))
             : ($examens->first(fn($e) => $e->phase()[0] !== 'Terminé') ?? $examens->first());
 
-        // Classes de l'année, rangées de Maternelle 1 à CM2
+        // Niveaux rangés de Maternelle 1 à CM2, chacun avec ses classes (CI A, CI B...)
         $ordre = ['Maternelle 1', 'Maternelle 2', 'CI', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'];
 
-        $classes = Classe::where('annee_scolaire', $annee)
+        $groupes = Classe::where('annee_scolaire', $annee)
             ->with('enseignant')
             ->get()
-            ->sortBy(function ($c) use ($ordre) {
-                $rang = array_search($c->niveau, $ordre);
-                return sprintf('%02d-%s', $rang === false ? 99 : $rang, $c->nom);
-            })
-            ->values();
+            ->sortBy('nom')
+            ->groupBy('niveau')
+            ->sortBy(function ($classes, $niveau) use ($ordre) {
+                $rang = array_search($niveau, $ordre);
+                return $rang === false ? 99 : $rang;
+            });
 
         // Matières regroupées par niveau
         $matieresParNiveau = Matiere::orderBy('nom')->get()->groupBy('niveau');
 
-        // Épreuves déjà déposées pour cette session, retrouvables par "classe-matière"
+        // Épreuves déjà déposées pour cette session, retrouvables par "niveau|matière"
         $epreuves = $examen
             ? Epreuve::where('examen_id', $examen->id)->with('auteur')->get()
-                ->keyBy(fn($e) => $e->classe_id . '-' . $e->matiere_id)
+                ->keyBy(fn($e) => $e->niveau . '|' . $e->matiere_id)
             : collect();
 
-        return view('admin.epreuves.suivi', compact('examens', 'examen', 'classes', 'matieresParNiveau', 'epreuves'));
+        return view('admin.epreuves.suivi', compact('examens', 'examen', 'groupes', 'matieresParNiveau', 'epreuves'));
     }
 
-    // Télécharger une épreuve (l'enseignant ne voit que celles de sa classe)
+    // Le directeur (ou l'admin) dépose une épreuve à la place des enseignants, en dernier recours
+    public function deposerPourEnseignant(Request $request)
+    {
+        $request->validate([
+            'examen_id'  => 'required|exists:examens,id',
+            'niveau'     => 'required|string|max:30',
+            'matiere_id' => 'required|exists:matieres,id',
+            'fichier'    => self::REGLE_FICHIER,
+        ], $this->messagesFichier());
+
+        $examen = Examen::findOrFail($request->examen_id);
+        $matiere = Matiere::findOrFail($request->matiere_id);
+
+        // La matière doit appartenir au niveau choisi
+        abort_unless($matiere->niveau === $request->niveau, 403, "Cette matière n'appartient pas à ce niveau.");
+
+        // depose_par = le directeur : on saura que ce ne sont pas les enseignants qui l'ont déposée
+        $this->enregistrer($examen, $request->niveau, $matiere, $request->file('fichier'));
+
+        return redirect('/admin/suivi-epreuves?examen_id=' . $examen->id)
+            ->with('success', 'Épreuve de ' . $matiere->nom . ' déposée pour le niveau ' . $request->niveau . ' à la place des enseignants.');
+    }
+
+    // Ouvrir les épreuves avant la date prévue (directeur ou admin) : l'action est enregistrée
+    public function ouvrirAnticipe($id)
+    {
+        $examen = Examen::findOrFail($id);
+
+        if (!$examen->epreuvesOuvertes()) {
+            $examen->update([
+                'ouverture_anticipee_par' => session('utilisateur_id'),
+                'ouverture_anticipee_le'  => now(),
+            ]);
+        }
+
+        return redirect('/admin/suivi-epreuves?examen_id=' . $examen->id)
+            ->with('success', 'Les épreuves sont maintenant ouvertes.');
+    }
+
+    // Lire une épreuve : l'enseignant lit celles de son niveau ; la direction et le secrétariat seulement après l'ouverture
     public function telecharger($id)
     {
-        $epreuve = Epreuve::findOrFail($id);
+        $epreuve = Epreuve::with('examen')->findOrFail($id);
 
         if (session('utilisateur_role') === 'enseignant') {
             $classe = $this->classeDeLEnseignant();
-            abort_unless($classe && $classe->id === $epreuve->classe_id, 403, 'Accès non autorisé.');
+            abort_unless($classe && $classe->niveau === $epreuve->niveau, 403, 'Accès non autorisé.');
+        } else {
+            abort_unless(
+                $epreuve->examen->epreuvesOuvertes(),
+                403,
+                'Cette épreuve est verrouillée jusqu\'au ' . $epreuve->examen->dateOuverture()->format('d/m/Y') . '.'
+            );
         }
 
         abort_unless(Storage::disk('local')->exists($epreuve->fichier), 404, 'Fichier introuvable.');

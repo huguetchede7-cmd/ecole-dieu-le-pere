@@ -7,6 +7,8 @@
 
 @include('partials.salutation')
 
+@include('partials.alertes-epreuves')
+
 @if($correctionsEnAttente->count() > 0)
 <div style="background:#fff4e5; border-radius:12px; padding:20px 24px; margin-bottom:20px; border-left:4px solid #e65100;">
     <h3 style="font-size:16px; color:#e65100; margin-bottom:10px;">

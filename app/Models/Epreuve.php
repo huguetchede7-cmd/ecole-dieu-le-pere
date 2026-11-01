@@ -10,7 +10,7 @@ class Epreuve extends Model
 
     protected $fillable = [
         'examen_id',
-        'classe_id',
+        'niveau',
         'matiere_id',
         'fichier',
         'nom_original',
@@ -25,11 +25,6 @@ class Epreuve extends Model
     public function examen()
     {
         return $this->belongsTo(Examen::class);
-    }
-
-    public function classe()
-    {
-        return $this->belongsTo(Classe::class);
     }
 
     public function matiere()

@@ -63,7 +63,12 @@
             <input type="date" name="date_limite_depot" value="{{ $v('date_limite_depot') }}" required
                 style="width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
         </div>
-        <div></div>
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:#333; margin-bottom:6px;">🔒 Épreuves visibles pour l'impression à partir du</label>
+            <input type="date" name="date_ouverture_impression" value="{{ $v('date_ouverture_impression') }}"
+                style="width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
+            <div style="font-size:12px; color:#888; margin-top:4px;">Laissez vide : ouverture 2 jours avant la composition. Avant cette date, seuls les enseignants lisent leurs épreuves.</div>
+        </div>
         <div>
             <label style="display:block; font-size:13px; font-weight:600; color:#333; margin-bottom:6px;">2. Début de la composition</label>
             <input type="date" name="date_debut" value="{{ $v('date_debut') }}" required

@@ -27,6 +27,14 @@
     Classe : <strong>{{ $classe->nom }}</strong>{{ $classe->niveau ? ' (' . $classe->niveau . ')' : '' }}
 </p>
 
+@if($autresClasses->count() > 0)
+<div style="background:#e8f0fe; color:#1a4fa3; padding:10px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
+    ℹ️ L'épreuve est <strong>commune</strong> à tout le niveau {{ $classe->niveau }} :
+    {{ $autresClasses->map(fn($c) => $c->nom . ($c->enseignant ? ' (' . $c->enseignant->nom . ')' : ''))->implode(', ') }}.
+    Concertez-vous : une seule personne dépose l'épreuve de chaque matière.
+</div>
+@endif
+
 @forelse($examens as $e)
 @php
     [$libelle, $couleur, $fond] = $e->phase();
@@ -76,7 +84,7 @@
                 <td style="padding:14px 20px; font-size:13px; color:#555;">
                     @if($ep)
                         <span style="color:#2e7d32; font-weight:600;">✅ Déposée</span><br>
-                        <span style="font-size:12px; color:#888;">le {{ $ep->updated_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}</span>
+                        <span style="font-size:12px; color:#888;">le {{ $ep->updated_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}{{ $ep->auteur ? ' par ' . $ep->auteur->nom : '' }}</span>
                         @if($ep->depose_en_retard)
                             <br><span style="background:#fff4e5; color:#e65100; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;">en retard</span>
                         @endif
@@ -98,7 +106,7 @@
                         @csrf
                         <input type="hidden" name="examen_id" value="{{ $e->id }}">
                         <input type="hidden" name="matiere_id" value="{{ $m->id }}">
-                        <input type="file" name="fichier" accept=".pdf,.doc,.docx" required style="font-size:12px; max-width:220px;">
+                        <input type="file" name="fichier" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="font-size:12px; max-width:220px;">
                         <button type="submit" style="background:#1a73e8; color:white; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
                             {{ $ep ? 'Remplacer' : 'Déposer' }}
                         </button>

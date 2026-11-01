@@ -9,6 +9,8 @@
 
 @include('partials.corrections-notifications')
 
+@include('partials.alertes-epreuves')
+
 <div style="background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
     <h3 style="font-size:16px; color:#333; margin-bottom:12px;">🎉 Bienvenue sur la plateforme</h3>
     <p style="color:#666; font-size:14px; line-height:1.8;">
