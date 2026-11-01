@@ -114,12 +114,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // --- Suivi des épreuves : admin, directeur, secrétaire ---
     Route::middleware('auth.role:admin,directeur,secretaire')->group(function () {
         Route::get('suivi-epreuves', [\App\Http\Controllers\EpreuveController::class, 'suivi'])->name('epreuves.suivi');
+            Route::get('epreuves/{epreuve}/imprimer', [\App\Http\Controllers\EpreuveController::class, 'imprimer'])->name('epreuves.imprimer');
+            Route::get('epreuves/{epreuve}/fichier', [\App\Http\Controllers\EpreuveController::class, 'fichier'])->name('epreuves.fichier');
+            Route::post('epreuves/version-finale', [\App\Http\Controllers\EpreuveController::class, 'deposerVersionFinale'])->name('epreuves.version-finale');
     });
 
         // --- Déposer une épreuve à la place de l'enseignant : admin, directeur ---
     Route::middleware('auth.role:admin,directeur')->group(function () {
         Route::post('suivi-epreuves/deposer', [\App\Http\Controllers\EpreuveController::class, 'deposerPourEnseignant'])->name('epreuves.deposer');
         Route::post('suivi-epreuves/{examen}/ouvrir', [\App\Http\Controllers\EpreuveController::class, 'ouvrirAnticipe'])->name('epreuves.ouvrir');
+        Route::get('journal-epreuves', [\App\Http\Controllers\EpreuveController::class, 'journal'])->name('epreuves.journal');
     });
 
     // --- Télécharger une épreuve : admin, directeur, secrétaire, enseignant (sa classe seulement) ---

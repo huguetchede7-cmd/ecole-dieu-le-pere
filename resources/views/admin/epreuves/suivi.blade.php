@@ -149,11 +149,16 @@
                 @forelse($matieres as $m)
                     @php $ep = $epreuves->get($niveau . '|' . $m->id); @endphp
                     @if($ep && $ouvertes)
-                        <a href="/admin/epreuves/{{ $ep->id }}/telecharger"
-                           title="Déposée le {{ $ep->updated_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}{{ $ep->auteur ? ' par ' . $ep->auteur->nom . ' ' . $ep->auteur->prenom : '' }}"
-                           style="display:inline-block; background:#e6f4ea; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:12px; text-decoration:none; margin:2px;">
-                            ✅ {{ $m->nom }}{{ $ep->depose_en_retard ? ' ⚠️' : '' }}
-                        </a>
+                        <span title="Déposée le {{ $ep->updated_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}{{ $ep->auteur ? ' par ' . $ep->auteur->nom . ' ' . $ep->auteur->prenom : '' }}"
+                              style="display:inline-block; background:#e6f4ea; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:12px; margin:2px;">
+                            ✅ <strong>{{ $m->nom }}</strong>{{ $ep->depose_en_retard ? ' ⚠️' : '' }}
+                            @if($ep->fichier_final) <span style="background:#6a1b9a; color:white; padding:1px 7px; border-radius:10px; font-size:11px;">prête</span> @endif
+                            · <a href="/admin/epreuves/{{ $ep->id }}/imprimer" target="_blank" style="color:#1a73e8; text-decoration:none; font-weight:600;">🖨️ Imprimer</a>
+                            · <a href="/admin/epreuves/{{ $ep->id }}/telecharger" style="color:#1a73e8; text-decoration:none;">⬇️ Original</a>
+                            @if($ep->fichier_final)
+                            · <a href="/admin/epreuves/{{ $ep->id }}/telecharger?version=finale" style="color:#1a73e8; text-decoration:none;">⬇️ Version prête</a>
+                            @endif
+                        </span>
                     @elseif($ep)
                         <span title="Déposée le {{ $ep->updated_at->timezone('Africa/Porto-Novo')->format('d/m/Y à H:i') }}{{ $ep->auteur ? ' par ' . $ep->auteur->nom . ' ' . $ep->auteur->prenom : '' }} — verrouillée jusqu'au {{ $examen->dateOuverture()->format('d/m/Y') }}"
                               style="display:inline-block; background:#e6f4ea; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:12px; margin:2px;">
@@ -167,6 +172,23 @@
                 @empty
                     <span style="font-size:13px; color:#999;">Aucune matière pour ce niveau</span>
                 @endforelse
+
+                                @php $avecEpreuve = $matieres->filter(fn($m) => $epreuves->has($niveau . '|' . $m->id)); @endphp
+                @if($ouvertes && $avecEpreuve->count() > 0 && in_array(session('utilisateur_role'), ['admin', 'directeur', 'secretaire'], true))
+                <details style="margin-top:8px;">
+                    <summary style="cursor:pointer; font-size:12px; color:#6a1b9a;">📎 Déposer la version prête à imprimer (PDF)</summary>
+                    <form method="POST" action="/admin/epreuves/version-finale" enctype="multipart/form-data" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+                        @csrf
+                        <select name="epreuve_id" required style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:12px;">
+                            @foreach($avecEpreuve as $mm)
+                            <option value="{{ $epreuves->get($niveau . '|' . $mm->id)->id }}">{{ $mm->nom }}</option>
+                            @endforeach
+                        </select>
+                        <input type="file" name="fichier" accept=".pdf" required style="font-size:12px; max-width:220px;">
+                        <button type="submit" style="background:#6a1b9a; color:white; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Enregistrer</button>
+                    </form>
+                </details>
+                @endif
 
                 @php $manquantesNiveau = $matieres->filter(fn($m) => !$epreuves->has($niveau . '|' . $m->id)); @endphp
                 @if(in_array(session('utilisateur_role'), ['admin', 'directeur'], true) && $manquantesNiveau->count() > 0)

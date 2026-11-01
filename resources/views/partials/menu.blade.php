@@ -73,6 +73,10 @@
 <a href="/admin/suivi-epreuves" class="menu-item {{ request()->is('admin/suivi-epreuves*') ? 'active' : '' }}"><span>📥</span> Suivi des épreuves</a>
 @endif
 
+@if($peut('admin', 'directeur'))
+<a href="/admin/journal-epreuves" class="menu-item {{ request()->is('admin/journal-epreuves*') ? 'active' : '' }}"><span>🕵️</span> Journal des épreuves</a>
+@endif
+
 @endif
 
 
